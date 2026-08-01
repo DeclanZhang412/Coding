@@ -19,21 +19,78 @@ def configure_page() -> None:
     """配置 Streamlit 页面基础信息。"""
 
     st.set_page_config(
-        page_title="智能教室环境控制模拟器 v5.0",
+        page_title="智能教室控制台",
         layout="wide",
         initial_sidebar_state="expanded",
+    )
+
+    st.markdown(
+        """
+        <style>
+            .stApp {
+                background: linear-gradient(135deg, #f7f9fe 0%, #eef4ff 100%);
+            }
+            .block-container {
+                padding-top: 1.2rem;
+                padding-bottom: 2rem;
+                max-width: 1500px;
+            }
+            .hero-card {
+                background: linear-gradient(90deg, #132a4f 0%, #244f8f 100%);
+                color: white;
+                padding: 1.2rem 1.4rem;
+                border-radius: 16px;
+                margin-bottom: 1rem;
+                box-shadow: 0 10px 24px rgba(19, 42, 79, 0.18);
+            }
+            .hero-title {
+                font-size: 1.45rem;
+                font-weight: 700;
+                margin-bottom: 0.3rem;
+            }
+            .hero-subtitle {
+                font-size: 0.98rem;
+                color: rgba(255,255,255,0.9);
+            }
+            div[data-testid="stMetric"] {
+                background: rgba(255,255,255,0.95);
+                border: 1px solid rgba(15, 23, 42, 0.06);
+                border-radius: 14px;
+                padding: 0.75rem 0.9rem;
+                box-shadow: 0 6px 18px rgba(15,23,42,0.05);
+            }
+            .stTabs [data-baseweb="tab-list"] {
+                gap: 0.35rem;
+                background: #f4f7ff;
+                padding: 0.25rem;
+                border-radius: 999px;
+            }
+            .stTabs [data-baseweb="tab"] {
+                border-radius: 999px;
+                padding: 0.35rem 0.8rem;
+            }
+            .stAlert, .stDataFrame {
+                border-radius: 12px;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
 
 
 def render_intro() -> None:
     """渲染页面标题和系统简介。"""
 
-    st.title("🏫 智能教室环境控制模拟器 v5.0")
     st.markdown(
         """
-基于**多步滚动预测控制（MPC）**、**独立双沙盒基准对照**、
-**热平衡诊断**与**分级机械新风控制**的教室数字孪生系统。
-"""
+        <div class="hero-card">
+            <div class="hero-title">智能教室控制台</div>
+            <div class="hero-subtitle">
+                以实时控制与预测决策为核心，支撑教室环境的动态调节与性能评估。
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
@@ -52,15 +109,18 @@ def render_runtime_summary(
         else f"{mins} 分钟"
     )
 
-    st.info(
-        f"⏳ **仿真时间**：{runtime_str} | "
-        f"🧱 **教室体积**：{config.classroom_volume:.1f} m³ | "
-        f"🔥 **有效热容**：{config.heat_capacity_kwh_per_k:.2f} kWh/K | "
-        f"🎯 **舒适区**：{config.t_min:.1f}–{config.t_max:.1f}°C | "
-        f"🍃 **CO₂目标/警戒**："
-        f"{config.co2_target}/{config.co2_warning} ppm | "
-        f"🔮 **预测时界**：{config.prediction_horizon} 分钟"
+    left_col, right_col = st.columns([1.15, 0.85])
+    with left_col:
+        st.info(
+        f"仿真时间：{runtime_str}  •  "
+        f"教室体积：{config.classroom_volume:.1f} m³  •  "
+        f"有效热容：{config.heat_capacity_kwh_per_k:.2f} kWh/K"
     )
+    with right_col:
+        st.info(
+            f"舒适区：{config.t_min:.1f}–{config.t_max:.1f}°C  •  "
+            f"CO₂目标/警戒：{config.co2_target}/{config.co2_warning} ppm  •  "
+            f"预测时界：{config.prediction_horizon} 分钟"
 
 
 def render_status_cards(
@@ -73,10 +133,10 @@ def render_status_cards(
     has_history = not history.empty
     last = history.iloc[-1] if has_history else pd.Series(dtype=object)
 
-    st.subheader("📊 建筑设备动态看板")
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    st.subheader("运行概览")
+    cols = st.columns(3)
 
-    with col1:
+    with cols[0]:
         current_temp = session_state["current_temp"]
         if current_temp > config.t_max:
             temp_desc = f"高于上限 {current_temp - config.t_max:.2f}°C"
@@ -89,13 +149,12 @@ def render_status_cards(
             temp_color = "normal"
 
         st.metric(
-            "🌡️ 室内温度",
+            "室内温度",
             f"{current_temp:.2f} °C",
             temp_desc,
             delta_color=temp_color,
         )
 
-    with col2:
         current_co2 = session_state["current_co2"]
         if current_co2 <= config.co2_target:
             co2_desc = "空气质量达标"
@@ -108,13 +167,13 @@ def render_status_cards(
             co2_color = "inverse"
 
         st.metric(
-            "🍃 CO₂ 浓度",
+            "CO₂ 浓度",
             f"{current_co2:.1f} ppm",
             co2_desc,
             delta_color=co2_color,
         )
 
-    with col3:
+    with cols[1]:
         if has_history:
             ac_text = (
                 "Standby"
@@ -123,9 +182,8 @@ def render_status_cards(
             )
         else:
             ac_text = "Standby"
-        st.metric("❄️ 空调状态", ac_text)
+        st.metric("空调状态", ac_text)
 
-    with col4:
         fresh_text = (
             f"{last['新风档位']}档"
             if has_history and last["新风档位"] != "关闭"
@@ -137,9 +195,9 @@ def render_status_cards(
             if has_history
             else "等待初始化"
         )
-        st.metric("🌪️ 新风状态", fresh_text, fresh_delta)
+        st.metric("新风状态", fresh_text, fresh_delta)
 
-    with col5:
+    with cols[2]:
         window_text = (
             f"{last['窗户开启比例']:.1f}%"
             if has_history
@@ -150,9 +208,8 @@ def render_status_cards(
             if has_history
             else "有效面积 0 ㎡"
         )
-        st.metric("🪟 窗户开度", window_text, window_delta)
+        st.metric("窗户开度", window_text, window_delta)
 
-    with col6:
         compliance = calculate_compliance_metrics(history, config)
         if has_history:
             quality_ok = (
@@ -172,7 +229,7 @@ def render_status_cards(
             energy_color = "normal"
 
         st.metric(
-            "⚡ MPC 累计电耗",
+            "MPC 累计电耗",
             f"{session_state['total_energy']:.3f} kWh",
             energy_delta,
             delta_color=energy_color,
@@ -191,7 +248,7 @@ def render_history_charts(
 
     history = session_state["history"]
 
-    st.subheader("📈 双系统沙盒对比与历史曲线")
+    st.subheader("运行趋势")
     if history.empty:
         st.info("暂无数据，请开启模拟。")
         return
@@ -250,7 +307,7 @@ def render_decision_panel(
     """渲染 MPC 可解释决策面板。"""
 
     history = session_state["history"]
-    st.subheader("🤖 MPC 预测控制决策内核")
+    st.subheader("控制决策")
 
     if (
         history.empty
@@ -265,7 +322,7 @@ def render_decision_panel(
     evaluation = decision["evaluation"]
     result = cast(PhysicalResult, session_state["last_result"])
 
-    st.markdown("**🧠 当前执行动作**")
+    st.markdown("**当前执行动作**")
     st.success(
         f"""
 - 空调：**{best.ac_mode} / {best.ac_level}**
@@ -277,7 +334,7 @@ def render_decision_panel(
     )
 
     if session_state["override_reason"]:
-        st.warning(f"🛡️ **硬约束覆盖：**{session_state['override_reason']}")
+        st.warning(f"**硬约束覆盖：**{session_state['override_reason']}")
 
     if config.outdoor_temp > config.t_max + 2.0 and best.window_ratio > 0.0:
         st.warning(
@@ -285,7 +342,7 @@ def render_decision_panel(
             f"当前窗户开度为 {best.window_ratio * 100:.0f}%。"
         )
 
-    st.markdown("**🔥 实时热量收支**")
+    st.markdown("**实时热量收支**")
     heat_table = pd.DataFrame(
         {
             "热量项目": [
@@ -321,7 +378,7 @@ def render_decision_panel(
         f"{abs(result.temp_change_c_per_min):.4f}°C。"
     )
 
-    st.markdown("**⚡ 实时功率分拆**")
+    st.markdown("**实时功率分拆**")
     power_table = pd.DataFrame(
         {
             "设备组件": [
@@ -340,7 +397,7 @@ def render_decision_panel(
     )
     st.dataframe(power_table, width="stretch", hide_index=True)
 
-    st.markdown(f"**📊 {config.prediction_horizon} 分钟候选动作累计代价 Top 5**")
+    st.markdown(f"**{config.prediction_horizon} 分钟候选动作累计代价 Top 5**")
     for index, item in enumerate(decision["pool"][:5], start=1):
         action: Action = item["action"]
         st.caption(
@@ -361,12 +418,12 @@ def render_analysis_area(
     """渲染图表与决策解释的双栏区域。"""
 
     st.markdown("---")
-    col_chart, col_decide = st.columns([2, 1])
+    chart_tab, decision_tab = st.tabs(["运行趋势", "控制决策"])
 
-    with col_chart:
+    with chart_tab:
         render_history_charts(session_state, config)
 
-    with col_decide:
+    with decision_tab:
         render_decision_panel(session_state, config)
 
 
@@ -380,52 +437,53 @@ def render_comparison(
     compliance = calculate_compliance_metrics(history, config)
 
     st.markdown("---")
-    st.subheader("🏁 MPC 与传统基准综合绩效比较")
+    with st.expander("MPC 与传统基准综合绩效比较", expanded=False):
+        st.subheader("MPC 与传统基准综合绩效比较")
 
-    comparison_df = pd.DataFrame(
-        {
-            "指标": [
-                "累计能耗 (kWh)",
-                "温度舒适达标率 (%)",
-                f"CO₂ ≤ {config.co2_target} ppm 达标率 (%)",
-                f"CO₂ ≤ {config.co2_warning} ppm 安全率 (%)",
-                "当前室温 (°C)",
-                "当前 CO₂ (ppm)",
-            ],
-            "MPC": [
-                round(session_state["total_energy"], 3),
-                round(compliance["mpc_temp"], 1),
-                round(compliance["mpc_co2"], 1),
-                round(compliance["mpc_co2_safe"], 1),
-                round(session_state["current_temp"], 2),
-                round(session_state["current_co2"], 1),
-            ],
-            "传统基准": [
-                round(session_state["benchmark_energy"], 3),
-                round(compliance["bench_temp"], 1),
-                round(compliance["bench_co2"], 1),
-                round(compliance["bench_co2_safe"], 1),
-                round(session_state["bench_temp"], 2),
-                round(session_state["bench_co2"], 1),
-            ],
-        }
-    )
-    st.dataframe(comparison_df, width="stretch", hide_index=True)
-
-    if history.empty:
-        return
-
-    mpc_quality_ok = (
-        compliance["mpc_temp"] >= 80.0
-        and compliance["mpc_co2_safe"] >= 95.0
-    )
-    if mpc_quality_ok:
-        st.success("MPC 已达到预设环境质量要求，节能率可以作为有效比较指标。")
-    else:
-        st.warning(
-            "当前 MPC 尚未同时满足 80% 温度舒适达标率和 95% CO₂ 安全率；"
-            "节能结果只可作为辅助数据，不应单独用于宣称系统更优。"
+        comparison_df = pd.DataFrame(
+            {
+                "指标": [
+                    "累计能耗 (kWh)",
+                    "温度舒适达标率 (%)",
+                    f"CO₂ ≤ {config.co2_target} ppm 达标率 (%)",
+                    f"CO₂ ≤ {config.co2_warning} ppm 安全率 (%)",
+                    "当前室温 (°C)",
+                    "当前 CO₂ (ppm)",
+                ],
+                "MPC": [
+                    round(session_state["total_energy"], 3),
+                    round(compliance["mpc_temp"], 1),
+                    round(compliance["mpc_co2"], 1),
+                    round(compliance["mpc_co2_safe"], 1),
+                    round(session_state["current_temp"], 2),
+                    round(session_state["current_co2"], 1),
+                ],
+                "传统基准": [
+                    round(session_state["benchmark_energy"], 3),
+                    round(compliance["bench_temp"], 1),
+                    round(compliance["bench_co2"], 1),
+                    round(compliance["bench_co2_safe"], 1),
+                    round(session_state["bench_temp"], 2),
+                    round(session_state["bench_co2"], 1),
+                ],
+            }
         )
+        st.dataframe(comparison_df, width="stretch", hide_index=True)
+
+        if history.empty:
+            return
+
+        mpc_quality_ok = (
+            compliance["mpc_temp"] >= 80.0
+            and compliance["mpc_co2_safe"] >= 95.0
+        )
+        if mpc_quality_ok:
+            st.success("MPC 已达到预设环境质量要求，节能率可以作为有效比较指标。")
+        else:
+            st.warning(
+                "当前 MPC 尚未同时满足 80% 温度舒适达标率和 95% CO₂ 安全率；"
+                "节能结果只可作为辅助数据，不应单独用于宣称系统更优。"
+            )
 
 
 def render_logs_and_export(session_state: MutableMapping[str, Any]) -> None:
@@ -434,21 +492,22 @@ def render_logs_and_export(session_state: MutableMapping[str, Any]) -> None:
     history = session_state["history"]
 
     st.markdown("---")
-    st.subheader("📝 系统运行日志")
+    with st.expander("系统运行日志与导出", expanded=False):
+        st.subheader("系统运行日志")
 
-    log_container = st.container(height=180)
-    with log_container:
-        for log in session_state["logs"]:
-            st.text(log)
+        log_container = st.container(height=180)
+        with log_container:
+            for log in session_state["logs"]:
+                st.text(log)
 
-    if history.empty:
-        return
+        if history.empty:
+            return
 
-    csv_data = history.to_csv(index=False).encode("utf-8-sig")
-    st.download_button(
-        label="⬇️ 导出完整仿真数据 CSV",
-        data=csv_data,
-        file_name="smart_classroom_digital_twin_v5.csv",
-        mime="text/csv",
-    )
+        csv_data = history.to_csv(index=False).encode("utf-8-sig")
+        st.download_button(
+            label="导出完整仿真数据 CSV",
+            data=csv_data,
+            file_name="smart_classroom_digital_twin_v5.csv",
+            mime="text/csv",
+        )
 

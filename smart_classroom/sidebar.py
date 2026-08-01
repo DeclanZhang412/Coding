@@ -14,7 +14,7 @@ from .physics import build_config
 def render_sidebar() -> tuple[SimulationConfig, str, bool]:
     """渲染侧边栏，并返回仿真配置、刷新速度和重置按钮状态。"""
 
-    st.sidebar.header("🛠️ 物理与结构参数")
+    st.sidebar.header("物理与结构参数")
 
     outdoor_temp = st.sidebar.slider(
         "1. 室外温度 (°C)", -10.0, 40.0, 32.0, 0.5
@@ -37,7 +37,7 @@ def render_sidebar() -> tuple[SimulationConfig, str, bool]:
     window_openable = st.sidebar.checkbox("7. 窗户是否可开启", True)
 
     st.sidebar.markdown("---")
-    st.sidebar.subheader("🎯 控制目标")
+    st.sidebar.subheader("控制目标")
 
     target_temp = st.sidebar.slider(
         "8. 空调设定点温度 (°C)", 16.0, 30.0, 24.0, 0.5
@@ -61,7 +61,7 @@ def render_sidebar() -> tuple[SimulationConfig, str, bool]:
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.subheader("🧱 模型校准参数")
+    st.sidebar.subheader("模型校准参数")
 
     thermal_mass_factor = st.sidebar.slider(
         "12. 等效热质量系数",
@@ -96,7 +96,7 @@ def render_sidebar() -> tuple[SimulationConfig, str, bool]:
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.subheader("🤖 MPC 参数")
+    st.sidebar.subheader("MPC 参数")
 
     prediction_horizon = st.sidebar.slider(
         "16. 预测时界 (分钟)", 10, 60, 30, 5
@@ -111,7 +111,7 @@ def render_sidebar() -> tuple[SimulationConfig, str, bool]:
     )
 
     reset_requested = st.sidebar.button(
-        "🔄 重置模拟体系",
+        "重置模拟体系",
         width="stretch",
     )
 
