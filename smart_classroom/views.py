@@ -27,146 +27,172 @@ def configure_page() -> None:
     st.markdown(
         """
         <style>
+            :root {
+                font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            }
             body, .stApp, .main, .block-container {
-                background-color: #0b1120 !important;
+                background-color: #070b16 !important;
                 color: #e2e8f0 !important;
             }
+            .block-container {
+                padding: 1rem 1.2rem !important;
+            }
             .stSidebar {
-                background-color: #0f172a !important;
+                background-color: #0c1428 !important;
                 color: #e2e8f0 !important;
             }
             .css-1v0mbdj.e1fqkh3o3, .css-1v0mbdj.e1fqkh3o6, .css-1v0mbdj.e1fqkh3o7 {
-                background-color: #0f172a !important;
+                background-color: #0c1428 !important;
             }
             .hero-card {
-                background: linear-gradient(90deg, #111827 0%, #1e293b 100%);
+                background: rgba(14, 20, 38, 0.96);
                 color: #f8fafc;
-                padding: 1.2rem 1.4rem;
-                border-radius: 16px;
+                padding: 1.35rem 1.45rem;
+                border-radius: 22px;
                 margin-bottom: 1rem;
-                box-shadow: 0 10px 30px rgba(15, 23, 42, 0.5);
+                border: 1px solid rgba(148,163,184,0.14);
+                box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+                backdrop-filter: blur(16px);
             }
             .hero-title {
-                font-size: 1.45rem;
+                font-size: 1.72rem;
                 font-weight: 700;
-                margin-bottom: 0.3rem;
+                margin-bottom: 0.35rem;
             }
             .hero-subtitle {
-                font-size: 0.95rem;
-                color: rgba(226, 232, 240, 0.85);
-                line-height: 1.6;
+                font-size: 1rem;
+                color: rgba(226, 232, 240, 0.82);
+                line-height: 1.7;
             }
             .summary-panel {
-                background: #0f172a;
-                border: 1px solid rgba(148,163,184,0.18);
-                border-radius: 16px;
-                padding: 0.85rem 1rem;
-                box-shadow: 0 10px 20px rgba(15, 23, 42, 0.30);
-                margin-bottom: 0.8rem;
+                background: rgba(12, 18, 34, 0.96);
+                border: 1px solid rgba(148,163,184,0.10);
+                border-radius: 20px;
+                padding: 0.95rem 1rem;
+                box-shadow: 0 20px 55px rgba(0, 0, 0, 0.22);
+                margin-bottom: 1rem;
+                backdrop-filter: blur(12px);
             }
             .summary-row {
-                margin-bottom: 0.45rem;
+                margin-bottom: 0.4rem;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                gap: 0.55rem;
+                gap: 0.6rem;
             }
             .summary-label {
                 color: #94a3b8;
-                min-width: 120px;
+                min-width: 100px;
+                font-size: 0.92rem;
                 font-weight: 600;
             }
             .summary-value {
                 color: #f8fafc;
-                font-weight: 600;
+                font-weight: 700;
+                font-size: 0.95rem;
             }
             .status-grid {
                 display: grid;
                 grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 0.5rem;
+                gap: 0.65rem;
             }
             .status-card {
-                background: #0f172a;
-                border: 1px solid rgba(148,163,184,0.16);
-                border-radius: 14px;
-                padding: 0.75rem 0.9rem;
+                background: rgba(13, 19, 34, 0.95);
+                border: 1px solid rgba(148,163,184,0.10);
+                border-radius: 20px;
+                padding: 0.85rem 0.95rem;
                 min-height: 140px;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                gap: 0.45rem;
-                box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+                gap: 0.35rem;
+                box-shadow: 0 18px 48px rgba(0, 0, 0, 0.20);
+                transition: transform 0.18s ease, box-shadow 0.18s ease;
+                backdrop-filter: blur(12px);
+            }
+            .status-card:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 22px 58px rgba(0, 0, 0, 0.26);
             }
             .status-card-title {
                 color: #94a3b8;
-                font-size: 0.84rem;
-                margin-bottom: 0.35rem;
+                font-size: 0.86rem;
+                margin-bottom: 0.3rem;
                 letter-spacing: 0.01em;
             }
             .status-card-value {
                 color: #f8fafc;
-                font-size: 1.85rem;
+                font-size: 1.92rem;
                 font-weight: 700;
                 line-height: 1.05;
             }
             .status-card-note {
                 color: #cbd5e1;
                 font-size: 0.84rem;
-                margin-top: 0.35rem;
+                margin-top: 0.3rem;
                 border-radius: 999px;
-                padding: 0.28rem 0.55rem;
+                padding: 0.25rem 0.55rem;
                 display: inline-block;
                 background: rgba(226,232,240,0.08);
             }
             .status-card-note.warning {
-                color: #fda4af;
-                background: rgba(248,113,113,0.14);
+                color: #fecaca;
+                background: rgba(248,113,113,0.16);
             }
             .status-card-note.positive {
-                color: #86efac;
-                background: rgba(34,197,94,0.14);
+                color: #a7f3d0;
+                background: rgba(34,197,94,0.16);
             }
             .stTabs [data-baseweb="tab-list"] {
                 gap: 0.35rem;
-                background: #0f172a;
-                padding: 0.25rem;
+                background: rgba(13, 19, 34, 0.95);
+                padding: 0.3rem;
                 border-radius: 999px;
-                border: 1px solid rgba(148,163,184,0.16);
+                border: 1px solid rgba(148,163,184,0.10);
+                box-shadow: inset 0 1px 2px rgba(255,255,255,0.03);
             }
             .stTabs [data-baseweb="tab"] {
                 border-radius: 999px;
-                padding: 0.35rem 0.8rem;
-                background: rgba(148,163,184,0.08);
+                padding: 0.4rem 0.95rem;
+                background: rgba(148,163,184,0.07);
                 color: #f8fafc;
             }
             .stTabs [data-baseweb="tab"][aria-selected="true"] {
-                background: #1f2937;
+                background: rgba(56,189,248,0.18);
                 color: #f8fafc;
             }
             .stAlert, .stDataFrame, .stExpander {
-                border-radius: 12px;
-                background: #111827 !important;
+                border-radius: 20px;
+                background: rgba(13, 19, 34, 0.98) !important;
                 color: #e2e8f0 !important;
+                border: 1px solid rgba(148,163,184,0.10) !important;
+                box-shadow: 0 20px 55px rgba(0,0,0,0.17);
+                backdrop-filter: blur(10px);
             }
             .stDataFrame table {
-                background: #0f172a !important;
+                background: rgba(15,23,42,0.95) !important;
                 color: #e2e8f0 !important;
             }
             .stButton > button {
-                background-color: #1f2937 !important;
-                color: #e2e8f0 !important;
-                border: 1px solid rgba(148,163,184,0.18) !important;
+                background-color: rgba(56,189,248,0.18) !important;
+                color: #f8fafc !important;
+                border: 1px solid rgba(56,189,248,0.30) !important;
+                border-radius: 999px !important;
+                padding: 0.55rem 1.1rem !important;
+                box-shadow: 0 18px 45px rgba(56,189,248,0.08);
             }
             .stButton > button:hover {
-                background-color: #334155 !important;
+                background-color: rgba(56,189,248,0.24) !important;
             }
             .inactive-prompt {
-                background: rgba(15, 23, 42, 0.95);
-                border: 1px solid rgba(148,163,184,0.14);
-                border-radius: 18px;
+                background: rgba(10, 14, 26, 0.98);
+                border: 1px solid rgba(148,163,184,0.10);
+                border-radius: 20px;
                 padding: 1.2rem;
                 color: #e2e8f0;
                 margin: 0.75rem 0;
+                box-shadow: 0 20px 55px rgba(0,0,0,0.18);
+                backdrop-filter: blur(10px);
             }
             .inactive-prompt-title {
                 font-size: 1.05rem;
@@ -175,16 +201,16 @@ def configure_page() -> None:
             }
             .inactive-prompt-text {
                 color: #cbd5e1;
-                line-height: 1.6;
+                line-height: 1.65;
                 margin-bottom: 1rem;
             }
             .pulse-arrow {
                 display: block;
                 margin: 0 auto;
-                width: 28px;
-                height: 28px;
+                width: 32px;
+                height: 32px;
                 color: #38bdf8;
-                font-size: 1.6rem;
+                font-size: 1.7rem;
                 animation: pulse-down 1.2s infinite;
             }
             @keyframes pulse-down {
