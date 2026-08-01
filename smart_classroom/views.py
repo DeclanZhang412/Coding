@@ -21,22 +21,22 @@ def configure_page() -> None:
     st.set_page_config(
         page_title="智能教室控制台",
         layout="wide",
-        initial_sidebar_state="expanded",
+        initial_sidebar_state="collapsed",
     )
 
     st.markdown(
         """
         <style>
             body, .stApp, .main, .block-container {
-                background-color: #0f172a !important;
+                background-color: #0b1120 !important;
                 color: #e2e8f0 !important;
             }
             .stSidebar {
-                background-color: #111827 !important;
+                background-color: #0f172a !important;
                 color: #e2e8f0 !important;
             }
             .css-1v0mbdj.e1fqkh3o3, .css-1v0mbdj.e1fqkh3o6, .css-1v0mbdj.e1fqkh3o7 {
-                background-color: #111827 !important;
+                background-color: #0f172a !important;
             }
             .hero-card {
                 background: linear-gradient(90deg, #111827 0%, #1e293b 100%);
@@ -57,7 +57,7 @@ def configure_page() -> None:
                 line-height: 1.6;
             }
             .summary-panel {
-                background: #111827;
+                background: #0f172a;
                 border: 1px solid rgba(148,163,184,0.18);
                 border-radius: 16px;
                 padding: 1rem 1.2rem;
@@ -80,10 +80,50 @@ def configure_page() -> None:
                 color: #f8fafc;
                 font-weight: 600;
             }
-            .stMetric > div {
-                background: #111827 !important;
-                border: 1px solid rgba(148,163,184,0.16) !important;
-                box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18) !important;
+            .status-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 1rem;
+            }
+            .status-card {
+                background: #0f172a;
+                border: 1px solid rgba(148,163,184,0.18);
+                border-radius: 18px;
+                padding: 1.2rem 1.3rem;
+                min-height: 200px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                box-shadow: 0 12px 28px rgba(15, 23, 42, 0.25);
+            }
+            .status-card-title {
+                color: #94a3b8;
+                font-size: 0.95rem;
+                margin-bottom: 0.85rem;
+                letter-spacing: 0.02em;
+            }
+            .status-card-value {
+                color: #f8fafc;
+                font-size: 2.3rem;
+                font-weight: 700;
+                line-height: 1.05;
+            }
+            .status-card-note {
+                color: #a5f3fc;
+                font-size: 0.95rem;
+                margin-top: 0.9rem;
+                border-radius: 999px;
+                padding: 0.45rem 0.8rem;
+                display: inline-block;
+                background: rgba(56,189,248,0.14);
+            }
+            .status-card-note.warning {
+                color: #fda4af;
+                background: rgba(248,113,113,0.14);
+            }
+            .status-card-note.positive {
+                color: #86efac;
+                background: rgba(34,197,94,0.14);
             }
             .stTabs [data-baseweb="tab-list"] {
                 gap: 0.35rem;
@@ -207,57 +247,118 @@ def render_status_cards(
     last = history.iloc[-1] if has_history else pd.Series(dtype=object)
 
     st.subheader("运行概览")
-    cols = st.columns(3)
+    st.markdown("<div class='status-grid'>", unsafe_allow_html=True)
 
-    with cols[0]:
-        current_temp = session_state["current_temp"]
-        if current_temp > config.t_max:
-            temp_desc = f"高于上限 {current_temp - config.t_max:.2f}°C"
-            temp_color = "inverse"
-        elif current_temp < config.t_min:
-            temp_desc = f"低于下限 {config.t_min - current_temp:.2f}°C"
-            temp_color = "inverse"
-        else:
-            temp_desc = "处于舒适区"
-            temp_color = "normal"
+    def status_card(title: str, value: str, note: str | None = None, note_type: str = 'positive'):
+        note_class = 'status-card-note '
+        note_class += 'warning' if note_type == 'warning' else 'positive'
+        card_html = f"""
+            <div class='status-card'>
+                <div class='status-card-title'>{title}</div>
+                <div class='status-card-value'>{value}</div>
+        """
+        if note:
+            card_html += f"<div class='{note_class}'>{note}</div>"
+        card_html += "</div>"
+        st.markdown(card_html, unsafe_allow_html=True)
 
-        st.metric(
-            "室内温度",
-            f"{current_temp:.2f} °C",
-            temp_desc,
-            delta_color=temp_color,
+    current_temp = session_state["current_temp"]
+    if current_temp > config.t_max:
+        temp_desc = f"高于上限 {current_temp - config.t_max:.2f}°C"
+        temp_type = 'warning'
+    elif current_temp < config.t_min:
+        temp_desc = f"低于下限 {config.t_min - current_temp:.2f}°C"
+        temp_type = 'warning'
+    else:
+        temp_desc = "处于舒适区"
+        temp_type = 'positive'
+
+    status_card(
+        "室内温度",
+        f"{current_temp:.2f} °C",
+        temp_desc,
+        temp_type,
+    )
+
+    current_co2 = session_state["current_co2"]
+    if current_co2 <= config.co2_target:
+        co2_desc = "空气质量达标"
+        co2_type = 'positive'
+    elif current_co2 < config.co2_warning:
+        co2_desc = f"超目标 {current_co2 - config.co2_target:.0f} ppm"
+        co2_type = 'warning'
+    else:
+        co2_desc = f"超过警戒 {current_co2 - config.co2_warning:.0f} ppm"
+        co2_type = 'warning'
+
+    status_card(
+        "CO₂ 浓度",
+        f"{current_co2:.1f} ppm",
+        co2_desc,
+        co2_type,
+    )
+
+    if has_history:
+        ac_text = (
+            "Standby"
+            if last["空调状态"] == "关闭"
+            else f"{last['空调状态']}（{last['风速']}）"
         )
+    else:
+        ac_text = "Standby"
 
-        current_co2 = session_state["current_co2"]
-        if current_co2 <= config.co2_target:
-            co2_desc = "空气质量达标"
-            co2_color = "normal"
-        elif current_co2 < config.co2_warning:
-            co2_desc = f"超目标 {current_co2 - config.co2_target:.0f} ppm"
-            co2_color = "inverse"
-        else:
-            co2_desc = f"超过警戒 {current_co2 - config.co2_warning:.0f} ppm"
-            co2_color = "inverse"
+    status_card("空调状态", ac_text)
 
-        st.metric(
-            "CO₂ 浓度",
-            f"{current_co2:.1f} ppm",
-            co2_desc,
-            delta_color=co2_color,
+    fresh_text = (
+        f"{last['新风档位']}档"
+        if has_history and last["新风档位"] != "关闭"
+        else "关闭"
+    )
+    fresh_delta = (
+        f"{last['换气率ACH']:.2f} ACH / {last['通风量m3h']:.0f} m³/h"
+        if has_history
+        else "等待初始化"
+    )
+    status_card("新风状态", fresh_text, fresh_delta)
+
+    window_text = (
+        f"{last['窗户开启比例']:.1f}%"
+        if has_history
+        else "0.0%"
+    )
+    window_delta = (
+        f"有效面积 {last['有效开口面积']:.2f} ㎡"
+        if has_history
+        else "有效面积 0 ㎡"
+    )
+    status_card("窗户开度", window_text, window_delta)
+
+    compliance = calculate_compliance_metrics(history, config)
+    if has_history:
+        quality_ok = (
+            compliance["mpc_temp"] >= 80.0
+            and compliance["mpc_co2_safe"] >= 95.0
         )
-
-    with cols[1]:
-        if has_history:
-            ac_text = (
-                "Standby"
-                if last["空调状态"] == "关闭"
-                else f"{last['空调状态']}（{last['风速']}）"
+        if quality_ok:
+            energy_delta = f"较基准节能 {last['节能比例']:.1f}%"
+            energy_type = 'positive'
+        else:
+            energy_delta = (
+                f"环境约束未满足；节能 {last['节能比例']:.1f}% 仅供参考"
             )
-        else:
-            ac_text = "Standby"
-        st.metric("空调状态", ac_text)
+            energy_type = 'warning'
+    else:
+        energy_delta = "双沙盒计算中"
+        energy_type = 'positive'
 
-        fresh_text = (
+    status_card(
+        "MPC 累计电耗",
+        f"{session_state['total_energy']:.3f} kWh",
+        energy_delta,
+        energy_type,
+    )
+
+    st.markdown("</div>", unsafe_allow_html=True)
             f"{last['新风档位']}档"
             if has_history and last["新风档位"] != "关闭"
             else "关闭"
