@@ -555,20 +555,24 @@ def render_decision_panel(
 
     st.markdown("**实时热量收支**")
     heat_metrics = [
-        ("人员显热", result.people_heat_kw, "#E85D5D"),
-        ("围护结构传热", result.envelope_heat_kw, "#E85D5D" if result.envelope_heat_kw > 0 else "#5D8AE8"),
-        ("通风显热", result.ventilation_heat_kw, "#E85D5D" if result.ventilation_heat_kw > 0 else "#5D8AE8"),
-        ("空调制冷", -result.ac_cooling_kw, "#5D8AE8"),
-        ("空调制热", result.ac_heating_kw, "#E85D5D"),
-        ("净热负荷", result.net_heat_kw, "#E85D5D" if result.net_heat_kw > 0 else "#5D8AE8"),
+        ("人员显热", result.people_heat_kw),
+        ("围护结构传热", result.envelope_heat_kw),
+        ("通风显热", result.ventilation_heat_kw),
+        ("空调制冷", -result.ac_cooling_kw),
+        ("空调制热", result.ac_heating_kw),
+        ("净热负荷", result.net_heat_kw),
     ]
-    for label, value, color in heat_metrics:
-        progress = min(max(abs(value) / 10.0, 0.02), 1.0)
+    for label, value in heat_metrics:
+        bar_color = "#E85D5D" if value >= 0 else "#5D8AE8"
+        progress = min(max(abs(value) / 12.0, 0.04), 1.0)
         st.markdown(
-            f"<div style='margin-bottom: 0.75rem;'>"
-            f"<div style='color:#e2e8f0;font-size:0.95rem;margin-bottom:0.25rem;'>{label}: {value:+.2f} kW</div>"
-            f"<div style='background:#1f2937;border-radius:999px;height:12px;'>"
-            f"<div style='width:{progress * 100:.0f}%;background:{color};height:12px;border-radius:999px;'></div>"
+            f"<div style='margin-bottom:0.85rem;'>"
+            f"<div style='display:flex;justify-content:space-between;align-items:center;"
+            f"color:#e2e8f0;font-size:0.95rem;margin-bottom:0.30rem;'>"
+            f"<span>{label}</span><span>{value:+.2f} kW</span></div>"
+            f"<div style='background:#111827;border-radius:999px;height:14px;overflow:hidden;'>"
+            f"<div style='width:{progress * 100:.0f}%;background:{bar_color};height:14px;"
+            f"border-radius:999px;box-shadow:0 0 12px {bar_color};'></div>"
             f"</div></div>"
             , unsafe_allow_html=True)
 
@@ -588,17 +592,21 @@ def render_decision_panel(
     st.markdown("**实时功率分拆**")
     power_metrics = [
         ("空调系统", result.ac_electric_kw, "#5D8AE8"),
-        ("新风机组", result.fresh_electric_kw, "#8899AA"),
-        ("控制器与传感器", result.base_electric_kw, "#8899AA"),
-        ("系统总功率", result.total_electric_kw, "#5D8AE8"),
+        ("新风机组", result.fresh_electric_kw, "#38BDF8"),
+        ("控制器与传感器", result.base_electric_kw, "#64748B"),
+        ("系统总功率", result.total_electric_kw, "#FACC15"),
     ]
+    total_power = max(result.total_electric_kw, 1.0)
     for label, value, color in power_metrics:
-        progress = min(max(value / max(result.total_electric_kw, 1.0), 0.02), 1.0)
+        progress = min(max(value / total_power, 0.04), 1.0)
         st.markdown(
-            f"<div style='margin-bottom: 0.75rem;'>"
-            f"<div style='color:#e2e8f0;font-size:0.95rem;margin-bottom:0.25rem;'>{label}: {value:.2f} kW</div>"
-            f"<div style='background:#1f2937;border-radius:999px;height:12px;'>"
-            f"<div style='width:{progress * 100:.0f}%;background:{color};height:12px;border-radius:999px;'></div>"
+            f"<div style='margin-bottom:0.85rem;'>"
+            f"<div style='display:flex;justify-content:space-between;align-items:center;"
+            f"color:#e2e8f0;font-size:0.95rem;margin-bottom:0.30rem;'>"
+            f"<span>{label}</span><span>{value:.2f} kW</span></div>"
+            f"<div style='background:#111827;border-radius:999px;height:14px;overflow:hidden;'>"
+            f"<div style='width:{progress * 100:.0f}%;background:{color};height:14px;"
+            f"border-radius:999px;box-shadow:0 0 12px {color};'></div>"
             f"</div></div>"
             , unsafe_allow_html=True)
 
