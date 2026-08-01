@@ -83,40 +83,40 @@ def configure_page() -> None:
             .status-grid {
                 display: grid;
                 grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 0.75rem;
+                gap: 0.5rem;
             }
             .status-card {
                 background: #0f172a;
-                border: 1px solid rgba(148,163,184,0.18);
-                border-radius: 16px;
-                padding: 0.95rem 1rem;
-                min-height: 160px;
+                border: 1px solid rgba(148,163,184,0.16);
+                border-radius: 14px;
+                padding: 0.75rem 0.9rem;
+                min-height: 140px;
                 display: flex;
                 flex-direction: column;
-                justify-content: flex-start;
-                gap: 0.55rem;
-                box-shadow: 0 10px 22px rgba(15, 23, 42, 0.20);
+                justify-content: space-between;
+                gap: 0.45rem;
+                box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
             }
             .status-card-title {
                 color: #94a3b8;
-                font-size: 0.88rem;
-                margin-bottom: 0.45rem;
+                font-size: 0.84rem;
+                margin-bottom: 0.35rem;
                 letter-spacing: 0.01em;
             }
             .status-card-value {
                 color: #f8fafc;
-                font-size: 2rem;
+                font-size: 1.85rem;
                 font-weight: 700;
-                line-height: 1.1;
+                line-height: 1.05;
             }
             .status-card-note {
-                color: #a5f3fc;
-                font-size: 0.88rem;
-                margin-top: 0.5rem;
+                color: #cbd5e1;
+                font-size: 0.84rem;
+                margin-top: 0.35rem;
                 border-radius: 999px;
-                padding: 0.3rem 0.65rem;
+                padding: 0.28rem 0.55rem;
                 display: inline-block;
-                background: rgba(56,189,248,0.12);
+                background: rgba(226,232,240,0.08);
             }
             .status-card-note.warning {
                 color: #fda4af;
@@ -159,6 +159,37 @@ def configure_page() -> None:
             }
             .stButton > button:hover {
                 background-color: #334155 !important;
+            }
+            .inactive-prompt {
+                background: rgba(15, 23, 42, 0.95);
+                border: 1px solid rgba(148,163,184,0.14);
+                border-radius: 18px;
+                padding: 1.2rem;
+                color: #e2e8f0;
+                margin: 0.75rem 0;
+            }
+            .inactive-prompt-title {
+                font-size: 1.05rem;
+                font-weight: 700;
+                margin-bottom: 0.65rem;
+            }
+            .inactive-prompt-text {
+                color: #cbd5e1;
+                line-height: 1.6;
+                margin-bottom: 1rem;
+            }
+            .pulse-arrow {
+                display: block;
+                margin: 0 auto;
+                width: 28px;
+                height: 28px;
+                color: #38bdf8;
+                font-size: 1.6rem;
+                animation: pulse-down 1.2s infinite;
+            }
+            @keyframes pulse-down {
+                0%, 100% { transform: translateY(0); opacity: 0.8; }
+                50% { transform: translateY(8px); opacity: 1; }
             }
             .css-1d391kg {
                 background-color: #111827 !important;
@@ -531,6 +562,22 @@ def render_decision_panel(
     )
 
 
+def render_inactive_prompt() -> None:
+    st.markdown(
+        """
+        <div class='inactive-prompt'>
+            <div class='inactive-prompt-title'>未激活实时推演</div>
+            <div class='inactive-prompt-text'>
+                点击上方开关开始实时推演，系统将自动展示温度、CO₂、工况和能耗趋势。<br>
+                若暂不启用，页面会保留当前模型设置，不会自动修改参数。
+            </div>
+            <div class='pulse-arrow'>⌄</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_analysis_area(
     session_state: MutableMapping[str, Any],
     config: SimulationConfig,
@@ -538,6 +585,9 @@ def render_analysis_area(
     """渲染图表与决策解释的双栏区域。"""
 
     st.markdown("---")
+    if not session_state.get("running", False) and session_state["history"].empty:
+        render_inactive_prompt()
+
     chart_tab, decision_tab = st.tabs(["运行趋势", "控制决策"])
 
     with chart_tab:
