@@ -27,21 +27,24 @@ def configure_page() -> None:
     st.markdown(
         """
         <style>
-            .stApp {
-                background: linear-gradient(135deg, #f7f9fe 0%, #eef4ff 100%);
+            body, .stApp, .main, .block-container {
+                background-color: #0f172a !important;
+                color: #e2e8f0 !important;
             }
-            .block-container {
-                padding-top: 1.2rem;
-                padding-bottom: 2rem;
-                max-width: 1500px;
+            .stSidebar {
+                background-color: #111827 !important;
+                color: #e2e8f0 !important;
+            }
+            .css-1v0mbdj.e1fqkh3o3, .css-1v0mbdj.e1fqkh3o6, .css-1v0mbdj.e1fqkh3o7 {
+                background-color: #111827 !important;
             }
             .hero-card {
-                background: linear-gradient(90deg, #132a4f 0%, #244f8f 100%);
-                color: white;
+                background: linear-gradient(90deg, #111827 0%, #1e293b 100%);
+                color: #f8fafc;
                 padding: 1.2rem 1.4rem;
                 border-radius: 16px;
                 margin-bottom: 1rem;
-                box-shadow: 0 10px 24px rgba(19, 42, 79, 0.18);
+                box-shadow: 0 10px 30px rgba(15, 23, 42, 0.5);
             }
             .hero-title {
                 font-size: 1.45rem;
@@ -49,28 +52,78 @@ def configure_page() -> None:
                 margin-bottom: 0.3rem;
             }
             .hero-subtitle {
-                font-size: 0.98rem;
-                color: rgba(255,255,255,0.9);
+                font-size: 0.95rem;
+                color: rgba(226, 232, 240, 0.85);
+                line-height: 1.6;
             }
-            div[data-testid="stMetric"] {
-                background: rgba(255,255,255,0.95);
-                border: 1px solid rgba(15, 23, 42, 0.06);
-                border-radius: 14px;
-                padding: 0.75rem 0.9rem;
-                box-shadow: 0 6px 18px rgba(15,23,42,0.05);
+            .summary-panel {
+                background: #111827;
+                border: 1px solid rgba(148,163,184,0.18);
+                border-radius: 16px;
+                padding: 1rem 1.2rem;
+                box-shadow: 0 10px 28px rgba(15, 23, 42, 0.35);
+                margin-bottom: 1rem;
+            }
+            .summary-row {
+                margin-bottom: 0.55rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 0.75rem;
+            }
+            .summary-label {
+                color: #94a3b8;
+                min-width: 120px;
+                font-weight: 600;
+            }
+            .summary-value {
+                color: #f8fafc;
+                font-weight: 600;
+            }
+            .stMetric > div {
+                background: #111827 !important;
+                border: 1px solid rgba(148,163,184,0.16) !important;
+                box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18) !important;
             }
             .stTabs [data-baseweb="tab-list"] {
                 gap: 0.35rem;
-                background: #f4f7ff;
+                background: #0f172a;
                 padding: 0.25rem;
                 border-radius: 999px;
+                border: 1px solid rgba(148,163,184,0.16);
             }
             .stTabs [data-baseweb="tab"] {
                 border-radius: 999px;
                 padding: 0.35rem 0.8rem;
+                background: rgba(148,163,184,0.08);
+                color: #f8fafc;
             }
-            .stAlert, .stDataFrame {
+            .stTabs [data-baseweb="tab"][aria-selected="true"] {
+                background: #1f2937;
+                color: #f8fafc;
+            }
+            .stAlert, .stDataFrame, .stExpander {
                 border-radius: 12px;
+                background: #111827 !important;
+                color: #e2e8f0 !important;
+            }
+            .stDataFrame table {
+                background: #0f172a !important;
+                color: #e2e8f0 !important;
+            }
+            .stButton > button {
+                background-color: #1f2937 !important;
+                color: #e2e8f0 !important;
+                border: 1px solid rgba(148,163,184,0.18) !important;
+            }
+            .stButton > button:hover {
+                background-color: #334155 !important;
+            }
+            .css-1d391kg {
+                background-color: #111827 !important;
+            }
+            .css-1iq3q6v {
+                background-color: #111827 !important;
             }
         </style>
         """,
@@ -109,16 +162,38 @@ def render_runtime_summary(
         else f"{mins} 分钟"
     )
 
-    st.markdown("**仿真概览**")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write(f"**仿真时间：** {runtime_str}")
-        st.write(f"**教室体积：** {config.classroom_volume:.1f} m³")
-        st.write(f"**有效热容：** {config.heat_capacity_kwh_per_k:.2f} kWh/K")
-    with col2:
-        st.write(f"**舒适区：** {config.t_min:.1f}–{config.t_max:.1f}°C")
-        st.write(f"**CO₂ 目标/警戒：** {config.co2_target}/{config.co2_warning} ppm")
-        st.write(f"**预测时界：** {config.prediction_horizon} 分钟")
+    st.markdown("<div class='summary-panel'>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div class='summary-row'><div class='summary-label'>仿真时间</div>"
+        f"<div class='summary-value'>{runtime_str}</div></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f"<div class='summary-row'><div class='summary-label'>教室体积</div>"
+        f"<div class='summary-value'>{config.classroom_volume:.1f} m³</div></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f"<div class='summary-row'><div class='summary-label'>有效热容</div>"
+        f"<div class='summary-value'>{config.heat_capacity_kwh_per_k:.2f} kWh/K</div></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f"<div class='summary-row'><div class='summary-label'>舒适区</div>"
+        f"<div class='summary-value'>{config.t_min:.1f}–{config.t_max:.1f}°C</div></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f"<div class='summary-row'><div class='summary-label'>CO₂ 目标/警戒</div>"
+        f"<div class='summary-value'>{config.co2_target}/{config.co2_warning} ppm</div></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f"<div class='summary-row'><div class='summary-label'>预测时界</div>"
+        f"<div class='summary-value'>{config.prediction_horizon} 分钟</div></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_status_cards(
