@@ -60,16 +60,16 @@ def configure_page() -> None:
                 background: #0f172a;
                 border: 1px solid rgba(148,163,184,0.18);
                 border-radius: 16px;
-                padding: 1rem 1.2rem;
-                box-shadow: 0 10px 28px rgba(15, 23, 42, 0.35);
-                margin-bottom: 1rem;
+                padding: 0.85rem 1rem;
+                box-shadow: 0 10px 20px rgba(15, 23, 42, 0.30);
+                margin-bottom: 0.8rem;
             }
             .summary-row {
-                margin-bottom: 0.55rem;
+                margin-bottom: 0.45rem;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                gap: 0.75rem;
+                gap: 0.55rem;
             }
             .summary-label {
                 color: #94a3b8;
@@ -83,39 +83,40 @@ def configure_page() -> None:
             .status-grid {
                 display: grid;
                 grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 1rem;
+                gap: 0.75rem;
             }
             .status-card {
                 background: #0f172a;
                 border: 1px solid rgba(148,163,184,0.18);
-                border-radius: 18px;
-                padding: 1.2rem 1.3rem;
-                min-height: 200px;
+                border-radius: 16px;
+                padding: 0.95rem 1rem;
+                min-height: 160px;
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between;
-                box-shadow: 0 12px 28px rgba(15, 23, 42, 0.25);
+                justify-content: flex-start;
+                gap: 0.55rem;
+                box-shadow: 0 10px 22px rgba(15, 23, 42, 0.20);
             }
             .status-card-title {
                 color: #94a3b8;
-                font-size: 0.95rem;
-                margin-bottom: 0.85rem;
-                letter-spacing: 0.02em;
+                font-size: 0.88rem;
+                margin-bottom: 0.45rem;
+                letter-spacing: 0.01em;
             }
             .status-card-value {
                 color: #f8fafc;
-                font-size: 2.3rem;
+                font-size: 2rem;
                 font-weight: 700;
-                line-height: 1.05;
+                line-height: 1.1;
             }
             .status-card-note {
                 color: #a5f3fc;
-                font-size: 0.95rem;
-                margin-top: 0.9rem;
+                font-size: 0.88rem;
+                margin-top: 0.5rem;
                 border-radius: 999px;
-                padding: 0.45rem 0.8rem;
+                padding: 0.3rem 0.65rem;
                 display: inline-block;
-                background: rgba(56,189,248,0.14);
+                background: rgba(56,189,248,0.12);
             }
             .status-card-note.warning {
                 color: #fda4af;
