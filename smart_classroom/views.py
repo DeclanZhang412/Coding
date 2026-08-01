@@ -359,55 +359,6 @@ def render_status_cards(
     )
 
     st.markdown("</div>", unsafe_allow_html=True)
-            f"{last['新风档位']}档"
-            if has_history and last["新风档位"] != "关闭"
-            else "关闭"
-        )
-        fresh_delta = (
-            f"{last['换气率ACH']:.2f} ACH / "
-            f"{last['通风量m3h']:.0f} m³/h"
-            if has_history
-            else "等待初始化"
-        )
-        st.metric("新风状态", fresh_text, fresh_delta)
-
-    with cols[2]:
-        window_text = (
-            f"{last['窗户开启比例']:.1f}%"
-            if has_history
-            else "0.0%"
-        )
-        window_delta = (
-            f"有效面积 {last['有效开口面积']:.2f} ㎡"
-            if has_history
-            else "有效面积 0 ㎡"
-        )
-        st.metric("窗户开度", window_text, window_delta)
-
-        compliance = calculate_compliance_metrics(history, config)
-        if has_history:
-            quality_ok = (
-                compliance["mpc_temp"] >= 80.0
-                and compliance["mpc_co2_safe"] >= 95.0
-            )
-            if quality_ok:
-                energy_delta = f"较基准节能 {last['节能比例']:.1f}%"
-                energy_color = "normal"
-            else:
-                energy_delta = (
-                    f"环境约束未满足；节能 {last['节能比例']:.1f}% 仅供参考"
-                )
-                energy_color = "inverse"
-        else:
-            energy_delta = "双沙盒计算中"
-            energy_color = "normal"
-
-        st.metric(
-            "MPC 累计电耗",
-            f"{session_state['total_energy']:.3f} kWh",
-            energy_delta,
-            delta_color=energy_color,
-        )
 
 
 def render_history_charts(
