@@ -250,7 +250,10 @@ def prediction_fallback_action(
     大概率会做出的动作。
     """
 
-    if temp > config.t_max + 0.8:
+    if config.classroom_people == 0:
+        ac_mode = "关闭"
+        ac_level = "无"
+    elif temp > config.t_max + 0.8:
         ac_mode = "制冷"
         ac_level = "高"
     elif temp > config.t_max:
@@ -273,7 +276,7 @@ def prediction_fallback_action(
     if (
         config.window_openable
         and ac_mode == "关闭"
-        and fresh_level != "关闭"
+        and co2 > config.co2_target
         and outdoor_comfortable
     ):
         window_ratio = 0.5
@@ -500,18 +503,22 @@ def choose_benchmark_action(
     temp: float,
     co2: float,
     config: SimulationConfig,
+    current_step: int,
 ) -> Action:
     """传统基准控制器。
 
-    基准系统故意保持简单：温度靠最大档空调，CO₂ 超目标时优先开窗。
-    它不评估室外温度对开窗的热负荷影响，用于对照 MPC 的智能性。
+    传统基准采用固定时段全开空调策略：模拟 8:00-18:00 全开空调，
+    不考虑人数或智能优化；CO₂ 超目标时开窗作为简单安全策略。
     """
 
-    if temp > config.target_temp:
-        ac_mode = "制冷"
-        ac_level = "高"
-    elif temp < config.target_temp - 1.0:
-        ac_mode = "制热"
+    minute_of_day = current_step % 1440
+    within_schedule = 8 * 60 <= minute_of_day < 18 * 60
+
+    if within_schedule:
+        if temp >= config.target_temp:
+            ac_mode = "制冷"
+        else:
+            ac_mode = "制热"
         ac_level = "高"
     else:
         ac_mode = "关闭"

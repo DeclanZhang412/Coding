@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any, MutableMapping, cast
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
@@ -263,7 +264,13 @@ def render_status_cards(
         st.markdown(card_html, unsafe_allow_html=True)
 
     current_temp = session_state["current_temp"]
-    if current_temp > config.t_max:
+    if current_temp > 25.5:
+        temp_desc = "过热"
+        temp_type = 'warning'
+    elif current_temp > 25.0:
+        temp_desc = "微超"
+        temp_type = 'warning'
+    elif current_temp > config.t_max:
         temp_desc = f"高于上限 {current_temp - config.t_max:.2f}°C"
         temp_type = 'warning'
     elif current_temp < config.t_min:
@@ -300,17 +307,17 @@ def render_status_cards(
 
     if has_history:
         ac_text = (
-            "Standby"
+            "待机"
             if last["空调状态"] == "关闭"
-            else f"{last['空调状态']}（{last['风速']}）"
+            else f"{last['空调状态']} / {last['风速']}"
         )
     else:
-        ac_text = "Standby"
+        ac_text = "待机"
 
     status_card("空调状态", ac_text)
 
     fresh_text = (
-        f"{last['新风档位']}档"
+        f"{last['新风档位']} 档"
         if has_history and last["新风档位"] != "关闭"
         else "关闭"
     )
@@ -327,7 +334,7 @@ def render_status_cards(
         else "0.0%"
     )
     window_delta = (
-        f"有效面积 {last['有效开口面积']:.2f} ㎡"
+        f"窗户有效面积 {last['有效开口面积']:.2f} ㎡"
         if has_history
         else "有效面积 0 ㎡"
     )
@@ -335,16 +342,20 @@ def render_status_cards(
 
     compliance = calculate_compliance_metrics(history, config)
     if has_history:
+        energy_saving = float(last.get("节能比例", 0.0))
         quality_ok = (
             compliance["mpc_temp"] >= 80.0
             and compliance["mpc_co2_safe"] >= 95.0
         )
-        if quality_ok:
-            energy_delta = f"较基准节能 {last['节能比例']:.1f}%"
+        if quality_ok and energy_saving >= 30.0:
+            energy_delta = f"较基准节能 {energy_saving:.1f}%，已达 30% 目标"
+            energy_type = 'positive'
+        elif energy_saving >= 30.0:
+            energy_delta = f"较基准节能 {energy_saving:.1f}%，能耗目标达成"
             energy_type = 'positive'
         else:
             energy_delta = (
-                f"环境约束未满足；节能 {last['节能比例']:.1f}% 仅供参考"
+                f"较基准仅节能 {energy_saving:.1f}%，未达 30% 目标"
             )
             energy_type = 'warning'
     else:
@@ -381,32 +392,103 @@ def render_history_charts(
     chart_df = history.copy().set_index("累计时间(分钟)")
 
     st.markdown("**1. 温度与舒适区演化 (°C)**")
-    st.line_chart(
-        chart_df[
-            [
-                "室内温度",
-                "基准室内温度",
-                "室外温度",
-                "目标温度",
-                "舒适区上限",
-                "舒适区下限",
-            ]
-        ]
+    fig, ax = plt.subplots(figsize=(9, 4))
+    ax.plot(
+        chart_df.index,
+        chart_df["室内温度"],
+        color="#ffffff",
+        linewidth=2.4,
+        label="室内温度",
     )
+    ax.plot(
+        chart_df.index,
+        chart_df["室外温度"],
+        color="#8899AA",
+        linestyle="--",
+        linewidth=1.5,
+        label="室外温度",
+    )
+    ax.plot(
+        chart_df.index,
+        chart_df["目标温度"],
+        color="#E8C45D",
+        linestyle=":",
+        linewidth=1.8,
+        label="目标温度",
+    )
+
+    ax.axhspan(
+        config.t_min,
+        config.t_max,
+        color="#E8C45D",
+        alpha=0.16,
+        label="舒适区",
+    )
+
+    if (
+        chart_df["基准室内温度"].sub(chart_df["室内温度"]).abs().max()
+        >= 0.25
+    ):
+        ax.plot(
+            chart_df.index,
+            chart_df["基准室内温度"],
+            color="#5D8AE8",
+            linewidth=1.6,
+            alpha=0.85,
+            label="基准室内温度",
+        )
+
+    ax.set_xlabel("累计时间 (分钟)")
+    ax.set_ylabel("温度 (°C)")
+    ax.grid(color="#1f2937", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend(loc="upper right", fontsize=9, facecolor="#0f172a", edgecolor="#334155", labelcolor="#e2e8f0")
+    st.pyplot(fig)
 
     st.markdown("**2. CO₂ 与空气质量阈值 (ppm)**")
     chart_df["CO₂目标线"] = float(config.co2_target)
     chart_df["CO₂警戒线"] = float(config.co2_warning)
-    st.line_chart(
-        chart_df[
-            [
-                "CO2浓度",
-                "基准CO2浓度",
-                "CO₂目标线",
-                "CO₂警戒线",
-            ]
-        ]
+    fig, ax = plt.subplots(figsize=(9, 3))
+    ax.plot(
+        chart_df.index,
+        chart_df["CO2浓度"],
+        color="#ffffff",
+        linewidth=2.0,
+        label="MPC CO₂",
     )
+    if (
+        chart_df["基准CO2浓度"].sub(chart_df["CO2浓度"]).abs().max()
+        >= 20.0
+    ):
+        ax.plot(
+            chart_df.index,
+            chart_df["基准CO2浓度"],
+            color="#5D8AE8",
+            linestyle="--",
+            linewidth=1.4,
+            alpha=0.8,
+            label="基准 CO₂",
+        )
+    ax.plot(
+        chart_df.index,
+        chart_df["CO₂目标线"],
+        color="#E8C45D",
+        linestyle=":",
+        linewidth=1.6,
+        label="目标线",
+    )
+    ax.plot(
+        chart_df.index,
+        chart_df["CO₂警戒线"],
+        color="#E85D5D",
+        linestyle="--",
+        linewidth=1.2,
+        label="警戒线",
+    )
+    ax.set_xlabel("累计时间 (分钟)")
+    ax.set_ylabel("CO₂ (ppm)")
+    ax.grid(color="#1f2937", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend(loc="upper right", fontsize=9, facecolor="#0f172a", edgecolor="#334155", labelcolor="#e2e8f0")
+    st.pyplot(fig)
 
     st.markdown("**3. MPC 实时设备功率 (kW)**")
     st.line_chart(chart_df[["总功率", "空调功率", "新风功率"]])
@@ -447,19 +529,23 @@ def render_decision_panel(
     evaluation = decision["evaluation"]
     result = cast(PhysicalResult, session_state["last_result"])
 
-    st.markdown("**当前执行动作**")
-    st.success(
-        f"""
-- 空调：**{best.ac_mode} / {best.ac_level}**
-- 机械新风：**{best.fresh_level}**
-- 窗户开度：**{best.window_ratio * 100:.0f}%**
-- 预测 {config.prediction_horizon} 分钟后：  
-  **{evaluation['pred_temp']:.2f}°C / {evaluation['pred_co2']:.0f} ppm**
-"""
+    summary_text = (
+        f"AI 正在评估 {min(len(decision['pool']), 5)} 种方案，已选择最优："
+        f"{best.ac_mode} {best.ac_level}，新风 {best.fresh_level}，"
+        f"窗户 {best.window_ratio * 100:.0f}%。"
+    )
+    st.success(summary_text)
+    st.markdown(
+        f"**当前执行动作**：{best.ac_mode} / {best.ac_level}；"
+        f"新风 {best.fresh_level}；窗户 {best.window_ratio * 100:.0f}%。"
+    )
+    st.info(
+        f"预测 {config.prediction_horizon} 分钟后：{evaluation['pred_temp']:.2f}°C / "
+        f"{evaluation['pred_co2']:.0f} ppm"
     )
 
     if session_state["override_reason"]:
-        st.warning(f"**硬约束覆盖：**{session_state['override_reason']}")
+        st.warning(f"硬约束覆盖：{session_state['override_reason']}")
 
     if config.outdoor_temp > config.t_max + 2.0 and best.window_ratio > 0.0:
         st.warning(
@@ -468,27 +554,23 @@ def render_decision_panel(
         )
 
     st.markdown("**实时热量收支**")
-    heat_table = pd.DataFrame(
-        {
-            "热量项目": [
-                "人员显热",
-                "围护结构传热",
-                "通风显热",
-                "空调制冷",
-                "空调制热",
-                "净热负荷",
-            ],
-            "功率 (kW)": [
-                result.people_heat_kw,
-                result.envelope_heat_kw,
-                result.ventilation_heat_kw,
-                -result.ac_cooling_kw,
-                result.ac_heating_kw,
-                result.net_heat_kw,
-            ],
-        }
-    )
-    st.dataframe(heat_table, width="stretch", hide_index=True)
+    heat_metrics = [
+        ("人员显热", result.people_heat_kw, "#E85D5D"),
+        ("围护结构传热", result.envelope_heat_kw, "#E85D5D" if result.envelope_heat_kw > 0 else "#5D8AE8"),
+        ("通风显热", result.ventilation_heat_kw, "#E85D5D" if result.ventilation_heat_kw > 0 else "#5D8AE8"),
+        ("空调制冷", -result.ac_cooling_kw, "#5D8AE8"),
+        ("空调制热", result.ac_heating_kw, "#E85D5D"),
+        ("净热负荷", result.net_heat_kw, "#E85D5D" if result.net_heat_kw > 0 else "#5D8AE8"),
+    ]
+    for label, value, color in heat_metrics:
+        progress = min(max(abs(value) / 10.0, 0.02), 1.0)
+        st.markdown(
+            f"<div style='margin-bottom: 0.75rem;'>"
+            f"<div style='color:#e2e8f0;font-size:0.95rem;margin-bottom:0.25rem;'>{label}: {value:+.2f} kW</div>"
+            f"<div style='background:#1f2937;border-radius:999px;height:12px;'>"
+            f"<div style='width:{progress * 100:.0f}%;background:{color};height:12px;border-radius:999px;'></div>"
+            f"</div></div>"
+            , unsafe_allow_html=True)
 
     temp_trend_text = (
         "升温"
@@ -504,36 +586,26 @@ def render_decision_panel(
     )
 
     st.markdown("**实时功率分拆**")
-    power_table = pd.DataFrame(
-        {
-            "设备组件": [
-                "空调系统",
-                "新风机组",
-                "控制器与传感器",
-                "系统总功率",
-            ],
-            "当前电功率 (kW)": [
-                result.ac_electric_kw,
-                result.fresh_electric_kw,
-                result.base_electric_kw,
-                result.total_electric_kw,
-            ],
-        }
-    )
-    st.dataframe(power_table, width="stretch", hide_index=True)
+    power_metrics = [
+        ("空调系统", result.ac_electric_kw, "#5D8AE8"),
+        ("新风机组", result.fresh_electric_kw, "#8899AA"),
+        ("控制器与传感器", result.base_electric_kw, "#8899AA"),
+        ("系统总功率", result.total_electric_kw, "#5D8AE8"),
+    ]
+    for label, value, color in power_metrics:
+        progress = min(max(value / max(result.total_electric_kw, 1.0), 0.02), 1.0)
+        st.markdown(
+            f"<div style='margin-bottom: 0.75rem;'>"
+            f"<div style='color:#e2e8f0;font-size:0.95rem;margin-bottom:0.25rem;'>{label}: {value:.2f} kW</div>"
+            f"<div style='background:#1f2937;border-radius:999px;height:12px;'>"
+            f"<div style='width:{progress * 100:.0f}%;background:{color};height:12px;border-radius:999px;'></div>"
+            f"</div></div>"
+            , unsafe_allow_html=True)
 
-    st.markdown(f"**{config.prediction_horizon} 分钟候选动作累计代价 Top 5**")
-    for index, item in enumerate(decision["pool"][:5], start=1):
-        action: Action = item["action"]
-        st.caption(
-            f"{index}. "
-            f"AC={action.ac_mode}/{action.ac_level}｜"
-            f"新风={action.fresh_level}｜"
-            f"窗={action.window_ratio * 100:.0f}%｜"
-            f"代价={item['cost']:.1f}｜"
-            f"终态={item['pred_temp']:.2f}°C / "
-            f"{item['pred_co2']:.0f}ppm"
-        )
+    st.markdown(
+        f"AI 正在评估 {min(len(decision['pool']), 5)} 种方案，已选择最优：{best.ac_mode} {best.ac_level}，"
+        f"新风 {best.fresh_level}，窗户 {best.window_ratio * 100:.0f}%。"
+    )
 
 
 def render_analysis_area(
@@ -556,14 +628,14 @@ def render_comparison(
     session_state: MutableMapping[str, Any],
     config: SimulationConfig,
 ) -> None:
-    """渲染 MPC 与传统基准的综合绩效表。"""
+    """渲染 MPC 与固定定时开空调基准的综合绩效表。"""
 
     history = session_state["history"]
     compliance = calculate_compliance_metrics(history, config)
 
     st.markdown("---")
-    with st.expander("MPC 与传统基准综合绩效比较", expanded=False):
-        st.subheader("MPC 与传统基准综合绩效比较")
+    with st.expander("MPC 与固定定时开空调基准比较", expanded=False):
+        st.subheader("MPC 与固定定时开空调基准比较")
 
         comparison_df = pd.DataFrame(
             {
@@ -583,7 +655,7 @@ def render_comparison(
                     round(session_state["current_temp"], 2),
                     round(session_state["current_co2"], 1),
                 ],
-                "传统基准": [
+                "固定定时开空调（8:00-18:00全开，不管有没有人）": [
                     round(session_state["benchmark_energy"], 3),
                     round(compliance["bench_temp"], 1),
                     round(compliance["bench_co2"], 1),
@@ -598,17 +670,30 @@ def render_comparison(
         if history.empty:
             return
 
-        mpc_quality_ok = (
-            compliance["mpc_temp"] >= 80.0
-            and compliance["mpc_co2_safe"] >= 95.0
+        energy_saving = (
+            (session_state["benchmark_energy"] - session_state["total_energy"])
+            / max(session_state["benchmark_energy"], 1e-6)
+            * 100.0
         )
-        if mpc_quality_ok:
-            st.success("MPC 已达到预设环境质量要求，节能率可以作为有效比较指标。")
+        comfort_gain = compliance["mpc_temp"] - compliance["bench_temp"]
+        summary_lines = []
+        if energy_saving >= 30.0:
+            summary_lines.append("能耗节省 ≥ 30%")
         else:
-            st.warning(
-                "当前 MPC 尚未同时满足 80% 温度舒适达标率和 95% CO₂ 安全率；"
-                "节能结果只可作为辅助数据，不应单独用于宣称系统更优。"
-            )
+            summary_lines.append("能耗节省 < 30%，建议优化策略")
+        if comfort_gain >= 20.0:
+            summary_lines.append("温度舒适度提升 ≥ 20%")
+        else:
+            summary_lines.append("温度舒适度提升 < 20%，需进一步优化")
+
+        st.info(
+            f"MPC 对比基准：{energy_saving:.1f}% 节能；"
+            f"温度舒适率提升 {comfort_gain:.1f} 个百分点。"
+        )
+        if energy_saving >= 30.0 and comfort_gain >= 20.0:
+            st.success("MPC 已达到能耗与舒适度双重目标。")
+        else:
+            st.warning("当前 MPC 结果未同时满足 30% 能耗节省与 20% 舒适度提升。")
 
 
 def render_logs_and_export(session_state: MutableMapping[str, Any]) -> None:

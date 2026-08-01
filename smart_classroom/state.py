@@ -127,6 +127,7 @@ def update_physics_and_control(
         session_state["bench_temp"],
         session_state["bench_co2"],
         config,
+        session_state["current_step"],
     )
     benchmark_result = simulate_one_minute(
         session_state["bench_temp"],
