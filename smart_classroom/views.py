@@ -109,18 +109,16 @@ def render_runtime_summary(
         else f"{mins} 分钟"
     )
 
-    left_col, right_col = st.columns([1.15, 0.85])
-    with left_col:
-        st.info(
-        f"仿真时间：{runtime_str}  •  "
-        f"教室体积：{config.classroom_volume:.1f} m³  •  "
-        f"有效热容：{config.heat_capacity_kwh_per_k:.2f} kWh/K"
-    )
-    with right_col:
-        st.info(
-            f"舒适区：{config.t_min:.1f}–{config.t_max:.1f}°C  •  "
-            f"CO₂目标/警戒：{config.co2_target}/{config.co2_warning} ppm  •  "
-            f"预测时界：{config.prediction_horizon} 分钟"
+    st.markdown("**仿真概览**")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write(f"**仿真时间：** {runtime_str}")
+        st.write(f"**教室体积：** {config.classroom_volume:.1f} m³")
+        st.write(f"**有效热容：** {config.heat_capacity_kwh_per_k:.2f} kWh/K")
+    with col2:
+        st.write(f"**舒适区：** {config.t_min:.1f}–{config.t_max:.1f}°C")
+        st.write(f"**CO₂ 目标/警戒：** {config.co2_target}/{config.co2_warning} ppm")
+        st.write(f"**预测时界：** {config.prediction_horizon} 分钟")
 
 
 def render_status_cards(

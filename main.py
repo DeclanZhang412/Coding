@@ -60,7 +60,7 @@ def main() -> None:
         st.rerun()
 
     st.session_state.running = st.toggle(
-        "🚀 激活 MPC 数字孪生引擎实时推演",
+        "激活 MPC 实时推演",
         value=st.session_state.running,
     )
 
