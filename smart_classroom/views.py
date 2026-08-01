@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from typing import Any, MutableMapping, cast
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
@@ -392,103 +391,18 @@ def render_history_charts(
     chart_df = history.copy().set_index("累计时间(分钟)")
 
     st.markdown("**1. 温度与舒适区演化 (°C)**")
-    fig, ax = plt.subplots(figsize=(9, 4))
-    ax.plot(
-        chart_df.index,
-        chart_df["室内温度"],
-        color="#ffffff",
-        linewidth=2.4,
-        label="室内温度",
-    )
-    ax.plot(
-        chart_df.index,
-        chart_df["室外温度"],
-        color="#8899AA",
-        linestyle="--",
-        linewidth=1.5,
-        label="室外温度",
-    )
-    ax.plot(
-        chart_df.index,
-        chart_df["目标温度"],
-        color="#E8C45D",
-        linestyle=":",
-        linewidth=1.8,
-        label="目标温度",
-    )
-
-    ax.axhspan(
-        config.t_min,
-        config.t_max,
-        color="#E8C45D",
-        alpha=0.16,
-        label="舒适区",
-    )
-
+    temp_df = chart_df[["室内温度", "室外温度", "目标温度", "基准室内温度"]].copy()
     if (
-        chart_df["基准室内温度"].sub(chart_df["室内温度"]).abs().max()
-        >= 0.25
+        temp_df["基准室内温度"].sub(temp_df["室内温度"]).abs().max()
+        < 0.25
     ):
-        ax.plot(
-            chart_df.index,
-            chart_df["基准室内温度"],
-            color="#5D8AE8",
-            linewidth=1.6,
-            alpha=0.85,
-            label="基准室内温度",
-        )
-
-    ax.set_xlabel("累计时间 (分钟)")
-    ax.set_ylabel("温度 (°C)")
-    ax.grid(color="#1f2937", linestyle="--", linewidth=0.5, alpha=0.4)
-    ax.legend(loc="upper right", fontsize=9, facecolor="#0f172a", edgecolor="#334155", labelcolor="#e2e8f0")
-    st.pyplot(fig)
+        temp_df = temp_df.drop(columns=["基准室内温度"])
+    st.line_chart(temp_df)
 
     st.markdown("**2. CO₂ 与空气质量阈值 (ppm)**")
     chart_df["CO₂目标线"] = float(config.co2_target)
     chart_df["CO₂警戒线"] = float(config.co2_warning)
-    fig, ax = plt.subplots(figsize=(9, 3))
-    ax.plot(
-        chart_df.index,
-        chart_df["CO2浓度"],
-        color="#ffffff",
-        linewidth=2.0,
-        label="MPC CO₂",
-    )
-    if (
-        chart_df["基准CO2浓度"].sub(chart_df["CO2浓度"]).abs().max()
-        >= 20.0
-    ):
-        ax.plot(
-            chart_df.index,
-            chart_df["基准CO2浓度"],
-            color="#5D8AE8",
-            linestyle="--",
-            linewidth=1.4,
-            alpha=0.8,
-            label="基准 CO₂",
-        )
-    ax.plot(
-        chart_df.index,
-        chart_df["CO₂目标线"],
-        color="#E8C45D",
-        linestyle=":",
-        linewidth=1.6,
-        label="目标线",
-    )
-    ax.plot(
-        chart_df.index,
-        chart_df["CO₂警戒线"],
-        color="#E85D5D",
-        linestyle="--",
-        linewidth=1.2,
-        label="警戒线",
-    )
-    ax.set_xlabel("累计时间 (分钟)")
-    ax.set_ylabel("CO₂ (ppm)")
-    ax.grid(color="#1f2937", linestyle="--", linewidth=0.5, alpha=0.4)
-    ax.legend(loc="upper right", fontsize=9, facecolor="#0f172a", edgecolor="#334155", labelcolor="#e2e8f0")
-    st.pyplot(fig)
+    st.line_chart(chart_df[["CO2浓度", "CO₂目标线", "CO₂警戒线"]])
 
     st.markdown("**3. MPC 实时设备功率 (kW)**")
     st.line_chart(chart_df[["总功率", "空调功率", "新风功率"]])
