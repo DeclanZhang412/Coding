@@ -54,6 +54,19 @@ HISTORY_COLUMNS = [
     "节能比例",
 ]
 
+MAX_HISTORY_ROWS = 180
+
+
+def trim_history_to_limit(
+    history: pd.DataFrame,
+    max_rows: int = MAX_HISTORY_ROWS,
+) -> pd.DataFrame:
+    """保留最近的历史行，避免图表和日志随着时间线性膨胀。"""
+
+    if len(history) <= max_rows:
+        return history
+    return history.tail(max_rows).copy()
+
 
 def reset_simulation(
     session_state: MutableMapping[str, Any],
@@ -224,6 +237,7 @@ def update_physics_and_control(
 
     history = session_state["history"]
     history.loc[len(history)] = new_row
+    history = trim_history_to_limit(history)
     session_state["history"] = history
     session_state["compliance_metrics"] = calculate_compliance_metrics(
         history,

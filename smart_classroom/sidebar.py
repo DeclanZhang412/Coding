@@ -11,8 +11,8 @@ from .models import SimulationConfig
 from .physics import build_config
 
 
-def render_sidebar() -> tuple[SimulationConfig, str, bool]:
-    """渲染侧边栏，并返回仿真配置、刷新速度和重置按钮状态。"""
+def render_sidebar() -> tuple[SimulationConfig, str, str, bool]:
+    """渲染侧边栏，并返回仿真配置、刷新速度、性能模式和重置按钮状态。"""
 
     st.sidebar.header("物理与结构参数")
 
@@ -109,6 +109,12 @@ def render_sidebar() -> tuple[SimulationConfig, str, bool]:
         options=["慢", "中", "快"],
         value="中",
     )
+    performance_mode = st.sidebar.select_slider(
+        "19. 性能模式",
+        options=["平衡", "性能优先"],
+        value="平衡",
+        help="性能优先会减少图表刷新频率并降低页面负担。",
+    )
 
     reset_requested = st.sidebar.button(
         "重置模拟体系",
@@ -135,5 +141,5 @@ def render_sidebar() -> tuple[SimulationConfig, str, bool]:
         discount_factor=float(discount_factor),
     )
 
-    return config, str(sim_speed), reset_requested
+    return config, str(sim_speed), str(performance_mode), reset_requested
 

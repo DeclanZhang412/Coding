@@ -70,6 +70,39 @@ def configure_page() -> None:
                 grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 0.65rem;
             }
+            .status-card {
+                background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.72));
+                border: 1px solid rgba(148, 163, 184, 0.16);
+                border-radius: 16px;
+                padding: 0.8rem 0.9rem;
+                min-height: 7rem;
+                box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+                backdrop-filter: blur(8px);
+            }
+            .status-card-title {
+                font-size: 0.8rem;
+                color: #cbd5e1;
+                margin-bottom: 0.35rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+            }
+            .status-card-value {
+                font-size: 1.05rem;
+                font-weight: 700;
+                color: #f8fafc;
+                margin-bottom: 0.3rem;
+            }
+            .status-card-note {
+                font-size: 0.9rem;
+                line-height: 1.45;
+                color: #cbd5e1;
+            }
+            .status-card-note.warning {
+                color: #fbbf24;
+            }
+            .status-card-note.positive {
+                color: #86efac;
+            }
             .stAlert, .stDataFrame, .stExpander {
                 border-radius: 20px;
                 background: rgba(13, 19, 34, 0.98) !important;
@@ -346,6 +379,7 @@ def render_status_cards(
 def render_history_charts(
     session_state: MutableMapping[str, Any],
     config: SimulationConfig,
+    performance_mode: str = "平衡",
 ) -> None:
     """渲染历史曲线。
 
@@ -360,7 +394,11 @@ def render_history_charts(
         st.info("暂无数据，请开启模拟。")
         return
 
-    chart_df = history.tail(60).copy().set_index("累计时间(分钟)")
+    chart_window = 48 if performance_mode == "平衡" else 32
+    chart_df = history.tail(chart_window).copy().set_index("累计时间(分钟)")
+    secondary_chart_df = (
+        chart_df.iloc[::2].copy() if performance_mode == "性能优先" else chart_df
+    )
 
     st.markdown("**1. 温度与舒适区演化 (°C)**")
     temp_df = chart_df[["室内温度", "室外温度", "目标温度", "基准室内温度"]].copy()
@@ -369,20 +407,21 @@ def render_history_charts(
         < 0.25
     ):
         temp_df = temp_df.drop(columns=["基准室内温度"])
-    st.line_chart(temp_df)
+    st.line_chart(temp_df, height=220)
 
     st.markdown("**2. CO₂ 与空气质量阈值 (ppm)**")
     chart_df["CO₂目标线"] = float(config.co2_target)
     chart_df["CO₂警戒线"] = float(config.co2_warning)
-    st.line_chart(chart_df[["CO2浓度", "CO₂目标线", "CO₂警戒线"]])
+    st.line_chart(chart_df[["CO2浓度", "CO₂目标线", "CO₂警戒线"]], height=220)
 
     with st.expander("更多趋势（隐藏以提升滚动流畅度）", expanded=False):
+        st.caption("更多趋势已折叠以减少刷新负担。")
         st.markdown("**3. MPC 实时设备功率 (kW)**")
-        st.line_chart(chart_df[["总功率", "空调功率", "新风功率"]])
+        st.line_chart(secondary_chart_df[["总功率", "空调功率", "新风功率"]], height=180)
 
         st.markdown("**4. 实时净热负荷与温变速率**")
         st.line_chart(
-            chart_df[
+            secondary_chart_df[
                 [
                     "人员热负荷",
                     "围护结构热负荷",
@@ -390,7 +429,8 @@ def render_history_charts(
                     "空调制冷量",
                     "净热负荷",
                 ]
-            ]
+            ],
+            height=180,
         )
 
 
@@ -522,6 +562,7 @@ def render_inactive_prompt() -> None:
 def render_analysis_area(
     session_state: MutableMapping[str, Any],
     config: SimulationConfig,
+    performance_mode: str = "平衡",
 ) -> None:
     """渲染图表与决策解释的双栏区域。"""
 
@@ -532,7 +573,7 @@ def render_analysis_area(
     chart_tab, decision_tab = st.tabs(["运行趋势", "控制决策"])
 
     with chart_tab:
-        render_history_charts(session_state, config)
+        render_history_charts(session_state, config, performance_mode)
 
     with decision_tab:
         render_decision_panel(session_state, config)

@@ -52,11 +52,12 @@ def main() -> None:
     configure_page()
     render_intro()
 
-    config, sim_speed, reset_requested = render_sidebar()
+    config, sim_speed, performance_mode, reset_requested = render_sidebar()
     ensure_simulation_state(st.session_state, config)
 
     if reset_requested:
         reset_simulation(st.session_state, config)
+        st.session_state["_refresh_tick"] = 0
         st.rerun()
 
     st.session_state.running = st.toggle(
@@ -70,14 +71,23 @@ def main() -> None:
 
     render_runtime_summary(st.session_state, config)
     render_status_cards(st.session_state, config)
-    render_analysis_area(st.session_state, config)
+    render_analysis_area(st.session_state, config, performance_mode)
     render_comparison(st.session_state, config)
     render_logs_and_export(st.session_state)
 
     # Streamlit 没有传统后台循环；这里通过 sleep + rerun 模拟实时推进。
     if st.session_state.running:
-        time.sleep(SPEED_MAP[sim_speed])
-        update_physics_and_control(st.session_state, config)
+        refresh_tick = int(st.session_state.get("_refresh_tick", 0)) + 1
+        st.session_state["_refresh_tick"] = refresh_tick
+
+        update_every = 2 if performance_mode == "性能优先" else 1
+        if refresh_tick % update_every == 0:
+            update_physics_and_control(st.session_state, config)
+
+        sleep_seconds = SPEED_MAP[sim_speed] * (
+            2.0 if performance_mode == "性能优先" else 1.0
+        )
+        time.sleep(sleep_seconds)
         st.rerun()
 
 

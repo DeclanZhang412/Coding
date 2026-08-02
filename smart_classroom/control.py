@@ -30,37 +30,29 @@ FRESH_LEVELS: tuple[FreshLevel, ...] = ("关闭", "低", "中", "高")
 
 
 def build_candidate_actions(config: SimulationConfig) -> list[Action]:
-    """构造 MPC 的候选动作空间。
-
-    动作空间既要覆盖常见设备组合，也不能太大，否则 Streamlit 每次
-    自动刷新都会变慢。这里保留了“关闭、制冷、制热、分级新风、
-    少量开窗”的核心组合。
-    """
+    """构造更紧凑的 MPC 候选动作空间，降低每次刷新成本。"""
 
     actions: list[Action] = []
 
-    for fresh in FRESH_LEVELS:
+    for fresh in ("关闭", "低", "中"):
         actions.append(Action("关闭", "无", 0.0, fresh))
 
     if config.window_openable:
         actions.extend(
             [
                 Action("关闭", "无", 0.2, "关闭"),
-                Action("关闭", "无", 0.2, "低"),
                 Action("关闭", "无", 0.5, "关闭"),
-                Action("关闭", "无", 1.0, "关闭"),
             ]
         )
 
-    for level in ("低", "中", "高"):
-        for fresh in FRESH_LEVELS:
+    for level in ("低", "中"):
+        for fresh in ("关闭", "低", "中"):
             actions.append(Action("制冷", level, 0.0, fresh))
         if config.window_openable:
             actions.append(Action("制冷", level, 0.2, "关闭"))
 
-    for level in ("低", "中", "高"):
+    for level in ("低", "中"):
         actions.append(Action("制热", level, 0.0, "关闭"))
-        actions.append(Action("制热", level, 0.0, "低"))
 
     return actions
 
