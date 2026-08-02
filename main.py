@@ -52,7 +52,13 @@ def main() -> None:
     configure_page()
     render_intro()
 
-    config, sim_speed, performance_mode, reset_requested = render_sidebar()
+    sidebar_values = render_sidebar()
+    if len(sidebar_values) == 3:
+        config, sim_speed, reset_requested = sidebar_values
+        performance_mode = "平衡"
+    else:
+        config, sim_speed, performance_mode, reset_requested = sidebar_values
+
     ensure_simulation_state(st.session_state, config)
 
     if reset_requested:
