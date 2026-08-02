@@ -121,14 +121,21 @@ def configure_page() -> None:
 
 
 def render_intro() -> None:
-    """渲染页面标题和系统简介。"""
+    """渲染产品封面、品牌介绍和引导步骤。"""
 
     st.markdown(
         """
         <div class="hero-card">
-            <div class="hero-title">智能教室控制台</div>
+            <div class="hero-title">
+                <span style="color:#ff6b6b;">Vent</span><span style="color:#ffffff;">Smart</span>
+            </div>
             <div class="hero-subtitle">
-                以实时控制与预测决策为核心，支撑教室环境的动态调节与性能评估。
+                SmartVentAI 用 AI 驱动的预测控制，帮助你快速模拟教室通风、温控与空气质量的协同表现。
+            </div>
+            <div class="hero-subtitle" style="margin-top:0.55rem;">
+                1. 在侧边栏调整教室参数<br>
+                2. 预设目标温度、CO₂ 阈值和模拟速度<br>
+                3. 点击下方按钮开启实时推演，观察环境变化与控制策略
             </div>
         </div>
         """,

@@ -14,6 +14,15 @@ from .physics import build_config
 def render_sidebar() -> tuple[SimulationConfig, str, str, bool]:
     """渲染侧边栏，并返回仿真配置、刷新速度、性能模式和重置按钮状态。"""
 
+    st.sidebar.markdown(
+        "<div style='padding:0.35rem 0 0.6rem 0;'>"
+        "<div style='font-size:1.05rem;font-weight:700;color:#ff6b6b;'>SmartVentAI 控制台</div>"
+        "<div style='font-size:0.9rem;color:#cbd5e1;margin-top:0.3rem;'>"
+        "在这里设定教室场景和控制目标，随后开启实时推演观察系统反应。"
+        "</div></div>",
+        unsafe_allow_html=True,
+    )
+    st.sidebar.markdown("---")
     st.sidebar.header("物理与结构参数")
 
     outdoor_temp = st.sidebar.slider(
@@ -116,6 +125,15 @@ def render_sidebar() -> tuple[SimulationConfig, str, str, bool]:
         help="性能优先会减少图表刷新频率并降低页面负担。",
     )
 
+    st.sidebar.markdown("---")
+    st.sidebar.caption("准备就绪后，点击下方按钮开启实时推演。")
+    running = st.session_state.get("running", False)
+    run_label = "▶ 启动实时推演" if not running else "⏹ 停止实时推演"
+    run_requested = st.sidebar.button(
+        run_label,
+        type="primary" if not running else "secondary",
+        use_container_width=True,
+    )
     reset_requested = st.sidebar.button(
         "重置模拟体系",
         width="stretch",
@@ -141,5 +159,5 @@ def render_sidebar() -> tuple[SimulationConfig, str, str, bool]:
         discount_factor=float(discount_factor),
     )
 
-    return config, str(sim_speed), str(performance_mode), reset_requested
+    return config, str(sim_speed), str(performance_mode), reset_requested, run_requested
 

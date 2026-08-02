@@ -57,20 +57,22 @@ def main() -> None:
     if len(sidebar_values) == 3:
         config, sim_speed, reset_requested = sidebar_values
         performance_mode = "平衡"
+        run_requested = False
     else:
-        config, sim_speed, performance_mode, reset_requested = sidebar_values
+        config, sim_speed, performance_mode, reset_requested, run_requested = (
+            sidebar_values
+        )
 
     ensure_simulation_state(st.session_state, config)
 
     if reset_requested:
         reset_simulation(st.session_state, config)
         st.session_state["_refresh_tick"] = 0
+        st.session_state.running = False
         st.rerun()
 
-    st.session_state.running = st.toggle(
-        "激活 MPC 实时推演",
-        value=st.session_state.running,
-    )
+    if run_requested:
+        st.session_state.running = not st.session_state.get("running", False)
 
     # 开启后先补一行初始结果，避免图表区域空白。
     if st.session_state.running and st.session_state.history.empty:
