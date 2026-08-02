@@ -51,8 +51,6 @@ def configure_page() -> None:
                 border-radius: 22px;
                 margin-bottom: 1rem;
                 border: 1px solid rgba(148,163,184,0.14);
-                box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
-                backdrop-filter: blur(16px);
             }
             .hero-title {
                 font-size: 1.72rem;
@@ -64,84 +62,19 @@ def configure_page() -> None:
                 color: rgba(226, 232, 240, 0.82);
                 line-height: 1.7;
             }
-            .summary-panel {
-                background: rgba(12, 18, 34, 0.96);
-                border: 1px solid rgba(148,163,184,0.10);
-                border-radius: 20px;
-                padding: 0.95rem 1rem;
-                box-shadow: 0 20px 55px rgba(0, 0, 0, 0.22);
-                margin-bottom: 1rem;
-                backdrop-filter: blur(12px);
-            }
-            .summary-row {
-                margin-bottom: 0.4rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 0.6rem;
-            }
-            .summary-label {
-                color: #94a3b8;
-                min-width: 100px;
-                font-size: 0.92rem;
-                font-weight: 600;
-            }
-            .summary-value {
-                color: #f8fafc;
-                font-weight: 700;
-                font-size: 0.95rem;
+            .stMetric {
+                margin-bottom: 0.5rem;
             }
             .status-grid {
                 display: grid;
                 grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 0.65rem;
             }
-            .status-card {
-                background: rgba(13, 19, 34, 0.95);
-                border: 1px solid rgba(148,163,184,0.10);
+            .stAlert, .stDataFrame, .stExpander {
                 border-radius: 20px;
-                padding: 0.85rem 0.95rem;
-                min-height: 140px;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                gap: 0.35rem;
-                box-shadow: 0 18px 48px rgba(0, 0, 0, 0.20);
-                transition: transform 0.18s ease, box-shadow 0.18s ease;
-                backdrop-filter: blur(12px);
-            }
-            .status-card:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 22px 58px rgba(0, 0, 0, 0.26);
-            }
-            .status-card-title {
-                color: #94a3b8;
-                font-size: 0.86rem;
-                margin-bottom: 0.3rem;
-                letter-spacing: 0.01em;
-            }
-            .status-card-value {
-                color: #f8fafc;
-                font-size: 1.92rem;
-                font-weight: 700;
-                line-height: 1.05;
-            }
-            .status-card-note {
-                color: #cbd5e1;
-                font-size: 0.84rem;
-                margin-top: 0.3rem;
-                border-radius: 999px;
-                padding: 0.25rem 0.55rem;
-                display: inline-block;
-                background: rgba(226,232,240,0.08);
-            }
-            .status-card-note.warning {
-                color: #fecaca;
-                background: rgba(248,113,113,0.16);
-            }
-            .status-card-note.positive {
-                color: #a7f3d0;
-                background: rgba(34,197,94,0.16);
+                background: rgba(13, 19, 34, 0.98) !important;
+                color: #e2e8f0 !important;
+                border: 1px solid rgba(148,163,184,0.10) !important;
             }
             .stTabs [data-baseweb="tab-list"] {
                 gap: 0.35rem;
@@ -211,11 +144,6 @@ def configure_page() -> None:
                 height: 32px;
                 color: #38bdf8;
                 font-size: 1.7rem;
-                animation: pulse-down 1.2s infinite;
-            }
-            @keyframes pulse-down {
-                0%, 100% { transform: translateY(0); opacity: 0.8; }
-                50% { transform: translateY(8px); opacity: 1; }
             }
             .css-1d391kg {
                 background-color: #111827 !important;
@@ -260,38 +188,16 @@ def render_runtime_summary(
         else f"{mins} 分钟"
     )
 
-    st.markdown("<div class='summary-panel'>", unsafe_allow_html=True)
-    st.markdown(
-        f"<div class='summary-row'><div class='summary-label'>仿真时间</div>"
-        f"<div class='summary-value'>{runtime_str}</div></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f"<div class='summary-row'><div class='summary-label'>教室体积</div>"
-        f"<div class='summary-value'>{config.classroom_volume:.1f} m³</div></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f"<div class='summary-row'><div class='summary-label'>有效热容</div>"
-        f"<div class='summary-value'>{config.heat_capacity_kwh_per_k:.2f} kWh/K</div></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f"<div class='summary-row'><div class='summary-label'>舒适区</div>"
-        f"<div class='summary-value'>{config.t_min:.1f}–{config.t_max:.1f}°C</div></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f"<div class='summary-row'><div class='summary-label'>CO₂ 目标/警戒</div>"
-        f"<div class='summary-value'>{config.co2_target}/{config.co2_warning} ppm</div></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f"<div class='summary-row'><div class='summary-label'>预测时界</div>"
-        f"<div class='summary-value'>{config.prediction_horizon} 分钟</div></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
+    cols = st.columns(3)
+    with cols[0]:
+        st.metric("仿真时间", runtime_str)
+        st.metric("教室体积", f"{config.classroom_volume:.1f} m³")
+    with cols[1]:
+        st.metric("有效热容", f"{config.heat_capacity_kwh_per_k:.2f} kWh/K")
+        st.metric("舒适区", f"{config.t_min:.1f}–{config.t_max:.1f}°C")
+    with cols[2]:
+        st.metric("CO₂ 目标/警戒", f"{config.co2_target}/{config.co2_warning} ppm")
+        st.metric("预测时界", f"{config.prediction_horizon} 分钟")
 
 
 def render_status_cards(
@@ -305,9 +211,15 @@ def render_status_cards(
     last = history.iloc[-1] if has_history else pd.Series(dtype=object)
 
     st.subheader("运行概览")
-    st.markdown("<div class='status-grid'>", unsafe_allow_html=True)
 
-    def status_card(title: str, value: str, note: str | None = None, note_type: str = 'positive'):
+    cards: list[str] = []
+
+    def status_card(
+        title: str,
+        value: str,
+        note: str | None = None,
+        note_type: str = 'positive',
+    ) -> None:
         note_class = 'status-card-note '
         note_class += 'warning' if note_type == 'warning' else 'positive'
         card_html = f"""
@@ -318,7 +230,7 @@ def render_status_cards(
         if note:
             card_html += f"<div class='{note_class}'>{note}</div>"
         card_html += "</div>"
-        st.markdown(card_html, unsafe_allow_html=True)
+        cards.append(card_html)
 
     current_temp = session_state["current_temp"]
     if current_temp > 25.5:
@@ -428,7 +340,7 @@ def render_status_cards(
         energy_type,
     )
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("<div class='status-grid'>" + "".join(cards) + "</div>", unsafe_allow_html=True)
 
 
 def render_history_charts(
@@ -448,7 +360,7 @@ def render_history_charts(
         st.info("暂无数据，请开启模拟。")
         return
 
-    chart_df = history.tail(120).copy().set_index("累计时间(分钟)")
+    chart_df = history.tail(60).copy().set_index("累计时间(分钟)")
 
     st.markdown("**1. 温度与舒适区演化 (°C)**")
     temp_df = chart_df[["室内温度", "室外温度", "目标温度", "基准室内温度"]].copy()
@@ -464,21 +376,22 @@ def render_history_charts(
     chart_df["CO₂警戒线"] = float(config.co2_warning)
     st.line_chart(chart_df[["CO2浓度", "CO₂目标线", "CO₂警戒线"]])
 
-    st.markdown("**3. MPC 实时设备功率 (kW)**")
-    st.line_chart(chart_df[["总功率", "空调功率", "新风功率"]])
+    with st.expander("更多趋势（隐藏以提升滚动流畅度）", expanded=False):
+        st.markdown("**3. MPC 实时设备功率 (kW)**")
+        st.line_chart(chart_df[["总功率", "空调功率", "新风功率"]])
 
-    st.markdown("**4. 实时净热负荷与温变速率**")
-    st.line_chart(
-        chart_df[
-            [
-                "人员热负荷",
-                "围护结构热负荷",
-                "通风热负荷",
-                "空调制冷量",
-                "净热负荷",
+        st.markdown("**4. 实时净热负荷与温变速率**")
+        st.line_chart(
+            chart_df[
+                [
+                    "人员热负荷",
+                    "围护结构热负荷",
+                    "通风热负荷",
+                    "空调制冷量",
+                    "净热负荷",
+                ]
             ]
-        ]
-    )
+        )
 
 
 def render_decision_panel(
@@ -708,7 +621,7 @@ def render_logs_and_export(session_state: MutableMapping[str, Any]) -> None:
     with st.expander("系统运行日志与导出", expanded=False):
         st.subheader("系统运行日志")
 
-        display_logs = session_state["logs"][:50]
+        display_logs = session_state["logs"][:20]
         if display_logs:
             st.code("\n".join(display_logs), language=None)
 
