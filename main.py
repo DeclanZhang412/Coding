@@ -65,8 +65,7 @@ def main() -> None:
     if reset_requested:
         reset_simulation(st.session_state, config)
         st.session_state["_refresh_tick"] = 0
-        # Use an empty placeholder instead of forcing a full rerun
-        st.empty()
+        st.rerun()
 
     st.session_state.running = st.toggle(
         "激活 MPC 实时推演",
@@ -104,9 +103,7 @@ def main() -> None:
             2.0 if performance_mode == "性能优先" else 1.0
         )
         time.sleep(sleep_seconds)
-        # Avoid forcing a full app rerun; create a transient empty container
-        # so the UI is updated in place on the next Streamlit cycle.
-        st.empty()
+        st.rerun()
 
 
 if __name__ == "__main__":

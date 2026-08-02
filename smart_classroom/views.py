@@ -41,149 +41,79 @@ def configure_page() -> None:
                 background-color: #0c1428 !important;
                 color: #e2e8f0 !important;
             }
-            .css-1v0mbdj.e1fqkh3o3, .css-1v0mbdj.e1fqkh3o6, .css-1v0mbdj.e1fqkh3o7 {
-                background-color: #0c1428 !important;
-            }
             .hero-card {
                 background: rgba(14, 20, 38, 0.96);
                 color: #f8fafc;
-                padding: 1.35rem 1.45rem;
-                border-radius: 22px;
-                margin-bottom: 1rem;
+                padding: 1.2rem 1.3rem;
+                border-radius: 18px;
+                margin-bottom: 0.8rem;
                 border: 1px solid rgba(148,163,184,0.14);
             }
             .hero-title {
-                font-size: 1.72rem;
+                font-size: 1.55rem;
                 font-weight: 700;
-                margin-bottom: 0.35rem;
+                margin-bottom: 0.3rem;
             }
             .hero-subtitle {
-                font-size: 1rem;
+                font-size: 0.95rem;
                 color: rgba(226, 232, 240, 0.82);
-                line-height: 1.7;
+                line-height: 1.6;
             }
             .stMetric {
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.45rem;
             }
             .status-grid {
                 display: grid;
                 grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 0.65rem;
+                gap: 0.6rem;
             }
             .status-card {
-                background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.72));
-                border: 1px solid rgba(148, 163, 184, 0.16);
-                border-radius: 16px;
-                padding: 0.8rem 0.9rem;
-                min-height: 7rem;
-                box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
-                backdrop-filter: blur(8px);
+                background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.72));
+                border: 1px solid rgba(148, 163, 184, 0.14);
+                border-radius: 14px;
+                padding: 0.75rem 0.8rem;
+                min-height: 6.4rem;
+                box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
             }
             .status-card-title {
-                font-size: 0.8rem;
+                font-size: 0.78rem;
                 color: #cbd5e1;
-                margin-bottom: 0.35rem;
+                margin-bottom: 0.25rem;
                 text-transform: uppercase;
-                letter-spacing: 0.06em;
+                letter-spacing: 0.05em;
             }
             .status-card-value {
-                font-size: 1.05rem;
+                font-size: 1rem;
                 font-weight: 700;
                 color: #f8fafc;
-                margin-bottom: 0.3rem;
+                margin-bottom: 0.25rem;
             }
             .status-card-note {
-                font-size: 0.9rem;
-                line-height: 1.45;
+                font-size: 0.86rem;
+                line-height: 1.4;
                 color: #cbd5e1;
             }
-            .status-card-note.warning {
-                color: #fbbf24;
-            }
-            .status-card-note.positive {
-                color: #86efac;
-            }
-            .stAlert, .stDataFrame, .stExpander {
-                border-radius: 20px;
-                background: rgba(13, 19, 34, 0.98) !important;
-                color: #e2e8f0 !important;
-                border: 1px solid rgba(148,163,184,0.10) !important;
-            }
-            .stTabs [data-baseweb="tab-list"] {
-                gap: 0.35rem;
-                background: rgba(13, 19, 34, 0.95);
-                padding: 0.3rem;
-                border-radius: 999px;
-                border: 1px solid rgba(148,163,184,0.10);
-                box-shadow: inset 0 1px 2px rgba(255,255,255,0.03);
-            }
-            .stTabs [data-baseweb="tab"] {
-                border-radius: 999px;
-                padding: 0.4rem 0.95rem;
-                background: rgba(148,163,184,0.07);
-                color: #f8fafc;
-            }
-            .stTabs [data-baseweb="tab"][aria-selected="true"] {
-                background: rgba(56,189,248,0.18);
-                color: #f8fafc;
-            }
-            .stAlert, .stDataFrame, .stExpander {
-                border-radius: 20px;
-                background: rgba(13, 19, 34, 0.98) !important;
-                color: #e2e8f0 !important;
-                border: 1px solid rgba(148,163,184,0.10) !important;
-                box-shadow: 0 20px 55px rgba(0,0,0,0.17);
-                backdrop-filter: blur(10px);
-            }
-            .stDataFrame table {
-                background: rgba(15,23,42,0.95) !important;
-                color: #e2e8f0 !important;
-            }
-            .stButton > button {
-                background-color: rgba(56,189,248,0.18) !important;
-                color: #f8fafc !important;
-                border: 1px solid rgba(56,189,248,0.30) !important;
-                border-radius: 999px !important;
-                padding: 0.55rem 1.1rem !important;
-                box-shadow: 0 18px 45px rgba(56,189,248,0.08);
-            }
-            .stButton > button:hover {
-                background-color: rgba(56,189,248,0.24) !important;
-            }
+            .status-card-note.warning { color: #fbbf24; }
+            .status-card-note.positive { color: #86efac; }
             .inactive-prompt {
                 background: rgba(10, 14, 26, 0.98);
                 border: 1px solid rgba(148,163,184,0.10);
-                border-radius: 20px;
-                padding: 1.2rem;
+                border-radius: 16px;
+                padding: 1rem;
                 color: #e2e8f0;
-                margin: 0.75rem 0;
-                box-shadow: 0 20px 55px rgba(0,0,0,0.18);
-                backdrop-filter: blur(10px);
+                margin: 0.6rem 0;
             }
             .inactive-prompt-title {
-                font-size: 1.05rem;
+                font-size: 1rem;
                 font-weight: 700;
-                margin-bottom: 0.65rem;
+                margin-bottom: 0.5rem;
             }
             .inactive-prompt-text {
                 color: #cbd5e1;
-                line-height: 1.65;
-                margin-bottom: 1rem;
+                line-height: 1.55;
+                margin-bottom: 0.8rem;
             }
-            .pulse-arrow {
-                display: block;
-                margin: 0 auto;
-                width: 32px;
-                height: 32px;
-                color: #38bdf8;
-                font-size: 1.7rem;
-            }
-            .css-1d391kg {
-                background-color: #111827 !important;
-            }
-            .css-1iq3q6v {
-                background-color: #111827 !important;
-            }
+            .pulse-arrow { display: none; }
         </style>
         """,
         unsafe_allow_html=True,
