@@ -251,15 +251,21 @@ def update_physics_and_control(
     )
     override_text = f"；安全覆盖：{override_reason}" if override_reason else ""
 
-    session_state["logs"].insert(
-        0,
-        (
-            f"[第 {step} 分钟] 执行 {action_log}；"
-            f"{config.prediction_horizon} 分钟预测终态："
-            f"{executed_evaluation['pred_temp']:.2f}°C / "
-            f"{executed_evaluation['pred_co2']:.0f} ppm"
-            f"{override_text}"
-        ),
+    new_log = (
+        f"[第 {step} 分钟] 执行 {action_log}；"
+        f"{config.prediction_horizon} 分钟预测终态："
+        f"{executed_evaluation['pred_temp']:.2f}°C / "
+        f"{executed_evaluation['pred_co2']:.0f} ppm"
+        f"{override_text}"
     )
-    session_state["logs"] = session_state["logs"][:200]
+
+    # Avoid repeated identical messages being appended. Overwrite the
+    # latest entry when it's the same as the new one; otherwise insert.
+    logs = session_state.get("logs", [])
+    if not logs:
+        logs = [new_log]
+    else:
+        if logs[0] != new_log:
+            logs.insert(0, new_log)
+    session_state["logs"] = logs[:200]
 

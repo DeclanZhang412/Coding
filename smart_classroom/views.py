@@ -394,7 +394,8 @@ def render_history_charts(
         st.info("暂无数据，请开启模拟。")
         return
 
-    chart_window = 48 if performance_mode == "平衡" else 32
+    # Always draw only the most recent 100 points to keep rendering lightweight.
+    chart_window = min(100, len(history))
     chart_df = history.tail(chart_window).copy().set_index("累计时间(分钟)")
     secondary_chart_df = (
         chart_df.iloc[::2].copy() if performance_mode == "性能优先" else chart_df
@@ -662,9 +663,11 @@ def render_logs_and_export(session_state: MutableMapping[str, Any]) -> None:
     with st.expander("系统运行日志与导出", expanded=False):
         st.subheader("系统运行日志")
 
-        display_logs = session_state["logs"][:20]
+        display_logs = session_state.get("logs", [])[:20]
         if display_logs:
-            st.code("\n".join(display_logs), language=None)
+            # Use a placeholder so the logs block is overwritten each render
+            logs_placeholder = st.empty()
+            logs_placeholder.code("\n".join(display_logs), language=None)
 
         if history.empty:
             return
