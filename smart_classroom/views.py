@@ -120,27 +120,30 @@ def configure_page() -> None:
     )
 
 
-def render_intro() -> None:
-    """渲染产品封面、品牌介绍和引导步骤。"""
+def render_intro() -> bool:
+    """渲染产品封面、品牌介绍和进入控制台按钮。"""
 
     st.markdown(
         """
         <div class="hero-card">
             <div class="hero-title">
-                <span style="color:#ff6b6b;">Vent</span><span style="color:#ffffff;">Smart</span>
+                <span style="color:#ffffff;">Smart</span><span style="color:#ff6b6b;">Vent</span>
             </div>
             <div class="hero-subtitle">
                 SmartVentAI 用 AI 驱动的预测控制，帮助你快速模拟教室通风、温控与空气质量的协同表现。
             </div>
             <div class="hero-subtitle" style="margin-top:0.55rem;">
-                1. 在侧边栏调整教室参数<br>
-                2. 预设目标温度、CO₂ 阈值和模拟速度<br>
-                3. 点击下方按钮开启实时推演，观察环境变化与控制策略
+                1. 先选择教室场景与控制目标<br>
+                2. 调整参数后进入控制台预览<br>
+                3. 点击启动按钮开始实时推演，查看趋势与决策结果
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    st.info("准备好后，点击下面的按钮进入控制台并开始配置模拟。")
+    return st.button("进入控制台", type="primary", use_container_width=True)
 
 
 def render_runtime_summary(

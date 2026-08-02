@@ -51,7 +51,12 @@ def main() -> None:
     """
 
     configure_page()
-    render_intro()
+
+    if not st.session_state.get("has_started", False):
+        if render_intro():
+            st.session_state["has_started"] = True
+            st.rerun()
+        st.stop()
 
     sidebar_values = render_sidebar()
     if len(sidebar_values) == 3:
