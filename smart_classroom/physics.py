@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+import streamlit as st
+
 from .models import Action, DeviceLevel, FreshLevel, PhysicalResult, SimulationConfig
 
 
@@ -53,6 +55,7 @@ FRESH_LEVEL_SCORE: dict[FreshLevel, int] = {
 }
 
 
+@st.cache_data
 def build_config(
     *,
     outdoor_temp: float,
@@ -116,6 +119,7 @@ def build_config(
     )
 
 
+@st.cache_data
 def calculate_ach(action: Action, config: SimulationConfig) -> float:
     """计算总换气率 ACH。
 
@@ -128,6 +132,7 @@ def calculate_ach(action: Action, config: SimulationConfig) -> float:
     return BASE_ACH + window_ach + FRESH_ACH[action.fresh_level]
 
 
+@st.cache_data
 def simulate_one_minute(
     temp: float,
     co2: float,

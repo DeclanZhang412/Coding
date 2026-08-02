@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import streamlit as st
 
 from .models import (
     Action,
@@ -29,6 +30,7 @@ from .physics import (
 FRESH_LEVELS: tuple[FreshLevel, ...] = ("关闭", "低", "中", "高")
 
 
+@st.cache_data
 def build_candidate_actions(config: SimulationConfig) -> list[Action]:
     """构造更紧凑的 MPC 候选动作空间，降低每次刷新成本。"""
 
@@ -230,6 +232,7 @@ def action_with_required_fresh(
     )
 
 
+@st.cache_data
 def prediction_fallback_action(
     temp: float,
     co2: float,
@@ -292,6 +295,7 @@ def max_fresh_score_for_current_co2(
     return FRESH_LEVEL_SCORE["高"]
 
 
+@st.cache_data
 def evaluate_action(
     initial_temp: float,
     initial_co2: float,
@@ -435,6 +439,7 @@ def apply_safety_override(
     return selected, ""
 
 
+@st.cache_data
 def choose_mpc_action(
     temp: float,
     co2: float,
