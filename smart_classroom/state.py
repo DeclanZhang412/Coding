@@ -12,6 +12,7 @@ from typing import Any, MutableMapping
 import pandas as pd
 
 from .control import (
+    calculate_compliance_metrics,
     choose_benchmark_action,
     choose_mpc_action,
     evaluate_action,
@@ -87,6 +88,14 @@ def reset_simulation(
     session_state["last_benchmark_result"] = None
     session_state["override_reason"] = ""
     session_state["scenario_signature"] = config.scenario_signature
+    session_state["compliance_metrics"] = {
+        "mpc_temp": 0.0,
+        "mpc_co2": 0.0,
+        "mpc_co2_safe": 0.0,
+        "bench_temp": 0.0,
+        "bench_co2": 0.0,
+        "bench_co2_safe": 0.0,
+    }
 
 
 def ensure_simulation_state(
@@ -213,17 +222,13 @@ def update_physics_and_control(
         "节能比例": round(energy_saved, 1),
     }
 
-    new_row_df = pd.DataFrame([new_row])
-    if session_state["history"].empty:
-        session_state["history"] = new_row_df
-    else:
-        session_state["history"] = pd.concat(
-            [
-                session_state["history"],
-                new_row_df,
-            ],
-            ignore_index=True,
-        )
+    history = session_state["history"]
+    history.loc[len(history)] = new_row
+    session_state["history"] = history
+    session_state["compliance_metrics"] = calculate_compliance_metrics(
+        history,
+        config,
+    )
 
     action_log = (
         f"空调[{best_action.ac_mode}/{best_action.ac_level}]，"

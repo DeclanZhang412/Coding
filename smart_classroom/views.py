@@ -397,7 +397,9 @@ def render_status_cards(
     )
     status_card("窗户开度", window_text, window_delta)
 
-    compliance = calculate_compliance_metrics(history, config)
+    compliance = session_state.get("compliance_metrics")
+    if compliance is None:
+        compliance = calculate_compliance_metrics(history, config)
     if has_history:
         energy_saving = float(last.get("节能比例", 0.0))
         quality_ok = (
@@ -446,7 +448,7 @@ def render_history_charts(
         st.info("暂无数据，请开启模拟。")
         return
 
-    chart_df = history.copy().set_index("累计时间(分钟)")
+    chart_df = history.tail(120).copy().set_index("累计时间(分钟)")
 
     st.markdown("**1. 温度与舒适区演化 (°C)**")
     temp_df = chart_df[["室内温度", "室外温度", "目标温度", "基准室内温度"]].copy()
@@ -630,7 +632,9 @@ def render_comparison(
     """渲染 MPC 与固定定时开空调基准的综合绩效表。"""
 
     history = session_state["history"]
-    compliance = calculate_compliance_metrics(history, config)
+    compliance = session_state.get("compliance_metrics")
+    if compliance is None:
+        compliance = calculate_compliance_metrics(history, config)
 
     st.markdown("---")
     with st.expander("MPC 与固定定时开空调基准比较", expanded=False):
@@ -704,10 +708,9 @@ def render_logs_and_export(session_state: MutableMapping[str, Any]) -> None:
     with st.expander("系统运行日志与导出", expanded=False):
         st.subheader("系统运行日志")
 
-        log_container = st.container(height=180)
-        with log_container:
-            for log in session_state["logs"]:
-                st.text(log)
+        display_logs = session_state["logs"][:50]
+        if display_logs:
+            st.code("\n".join(display_logs), language=None)
 
         if history.empty:
             return
