@@ -570,6 +570,7 @@ def render_analysis_area(
     st.markdown("---")
     if not session_state.get("running", False) and session_state["history"].empty:
         render_inactive_prompt()
+        return
 
     chart_tab, decision_tab = st.tabs(["运行趋势", "控制决策"])
 
@@ -587,6 +588,8 @@ def render_comparison(
     """渲染 MPC 与固定定时开空调基准的综合绩效表。"""
 
     history = session_state["history"]
+    if not session_state.get("running", False) and history.empty:
+        return
     compliance = session_state.get("compliance_metrics")
     if compliance is None:
         compliance = calculate_compliance_metrics(history, config)
@@ -658,6 +661,8 @@ def render_logs_and_export(session_state: MutableMapping[str, Any]) -> None:
     """渲染运行日志和 CSV 导出按钮。"""
 
     history = session_state["history"]
+    if not session_state.get("running", False) and history.empty:
+        return
 
     st.markdown("---")
     with st.expander("系统运行日志与导出", expanded=False):

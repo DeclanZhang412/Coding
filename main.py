@@ -28,6 +28,7 @@ from smart_classroom.views import (
     configure_page,
     render_analysis_area,
     render_comparison,
+    render_inactive_prompt,
     render_intro,
     render_logs_and_export,
     render_runtime_summary,
@@ -76,11 +77,19 @@ def main() -> None:
     if st.session_state.running and st.session_state.history.empty:
         update_physics_and_control(st.session_state, config)
 
+    should_render_live_panels = (
+        st.session_state.running or not st.session_state.history.empty
+    )
+
     render_runtime_summary(st.session_state, config)
     render_status_cards(st.session_state, config)
-    render_analysis_area(st.session_state, config, performance_mode)
-    render_comparison(st.session_state, config)
-    render_logs_and_export(st.session_state)
+
+    if should_render_live_panels:
+        render_analysis_area(st.session_state, config, performance_mode)
+        render_comparison(st.session_state, config)
+        render_logs_and_export(st.session_state)
+    else:
+        render_inactive_prompt()
 
     # Streamlit 没有传统后台循环；这里通过 sleep + rerun 模拟实时推进。
     if st.session_state.running:
